@@ -84,35 +84,48 @@ function startPolling(id, amountValue) {
 
             if (result.success) {
                 const status = result.data.status.toLowerCase();
-                console.log("Status atual:", status);
+                console.log("Status em tempo real:", status);
 
-                // GATILHO IMEDIATO: Qualquer sinal de que o PIX foi enviado/recebido
-                // Ignora a liquidação de 5h para dar feedback ao lojista
-                const successStatuses = ['depix_sent', 'paid', 'confirmed', 'completed', 'deposit.completed', 'processing'];
-                const errorStatuses = ['canceled', 'expired', 'refunded', 'deposit.canceled', 'deposit.expired'];
+                // GATILHO DE BALCÃO: Aceita qualquer status que indique pagamento em processamento ou concluído
+                // Isso ignora a trava de 5h para o feedback visual/sonoro
+                const successSignals = [
+                    'depix_sent', 'paid', 'confirmed', 'completed', 
+                    'deposit.completed', 'processing', 'under_review', 
+                    'received', 'deposit.under_review'
+                ];
+                
+                const failureSignals = [
+                    'canceled', 'expired', 'refunded', 
+                    'deposit.canceled', 'deposit.expired'
+                ];
 
-                if (successStatuses.includes(status)) {
-                    saveLocalSale(amountValue);
+                if (successSignals.includes(status)) {
+                    console.log(">>> SUCESSO DETECTADO! Disparando notificações...");
+                    saveLocalSale(amountValue, id);
                     handleSuccess();
-                } else if (errorStatuses.includes(status)) {
+                } else if (failureSignals.includes(status)) {
                     handleError();
                 }
             }
         } catch (e) {
-            console.error("Erro polling:", e);
+            console.error("Erro no polling de diagnóstico:", e);
         }
     }, 2000);
 }
 
-// Contingência: Salva a venda localmente para o relatório enquanto a API não liquida (trava de 5h)
-function saveLocalSale(amount) {
+// Persistência local para contornar o delay de 5h no relatório oficial
+function saveLocalSale(amount, id) {
     let sales = JSON.parse(localStorage.getItem('pending_sales') || '[]');
-    sales.push({
-        amount: amount,
-        timestamp: new Date().toISOString(),
-        status: 'Aguardando Liquidação (5h)'
-    });
-    localStorage.setItem('pending_sales', JSON.stringify(sales));
+    // Evita duplicidade se o polling rodar mais de uma vez antes de parar
+    if (!sales.find(s => s.id === id)) {
+        sales.push({
+            id: id,
+            amount: amount,
+            timestamp: new Date().toISOString(),
+            status: 'PAGO (Aguardando Liquidação)'
+        });
+        localStorage.setItem('pending_sales', JSON.stringify(sales));
+    }
 }
 
 function handleSuccess() {
@@ -123,7 +136,10 @@ function handleSuccess() {
     document.getElementById('screen-success').classList.remove('hidden');
     
     const sound = document.getElementById('sound-success');
-    if (sound) sound.play().catch(e => console.log("Erro áudio:", e));
+    if (sound) {
+        sound.currentTime = 0;
+        sound.play().catch(e => console.log("Erro ao tocar som de sucesso:", e));
+    }
     
     if (navigator.vibrate) navigator.vibrate([100, 30, 100]);
 }

@@ -15,12 +15,17 @@ export default async function handler(req, res) {
 
     const data = await response.json();
     
-    // LOG CRÍTICO: Registra o JSON inteiro para diagnóstico da trava de 5h
-    console.log(`[DEBUG BuyPix] Resposta Completa ID ${id}:`, JSON.stringify(data, null, 2));
+    // DIAGNÓSTICO TOTAL: Este log aparecerá na Vercel com todos os detalhes da BuyPix
+    console.log(`[DIAGNOSTICO] Resposta bruta da API para o ID ${id}:`, JSON.stringify(data, null, 2));
     
+    // Verifica se há metadados de webhook ou eventos específicos no objeto
+    if (data.data && data.data.event) {
+        console.log(`[DIAGNOSTICO] Evento detectado: ${data.data.event}`);
+    }
+
     return res.status(response.status).json(data);
   } catch (error) {
-    console.error('[DEBUG BuyPix] Erro na consulta:', error);
+    console.error('[DIAGNOSTICO] Falha na consulta de status:', error);
     return res.status(500).json({ success: false, message: error.message });
   }
 }
