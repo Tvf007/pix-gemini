@@ -101,29 +101,27 @@ function startPolling(id, amount) {
 
             if (result.success) {
                 const status = result.data.status.toLowerCase();
-                console.log("Polling status:", status);
+                console.log("Status oficial da API:", status);
 
-                // Gatilhos de Sucesso (inclui intermediários para o balcão)
-                const isSuccess = [
-                    'paid', 'confirmed', 'completed', 'depix_sent', 
-                    'deposit.completed', 'processing', 'received'
-                ].includes(status);
-
-                // Gatilho de Processamento (Visual apenas)
-                const isProcessing = ['under_review', 'deposit.under_review'].includes(status);
-
-                if (isSuccess) {
+                // 1. Pagamento identificado (mesmo que aguardando liquidação de 5h)
+                if (status === 'paid' || status === 'confirmed' || status === 'completed' || status === 'depix_sent' || status === 'received') {
+                    console.log("Pagamento identificado com sucesso!");
                     saveLocalSale(amount, id);
                     triggerSuccess();
-                } else if (isProcessing) {
-                    document.getElementById('status-msg').innerText = "Pagamento em Processamento...";
-                    document.body.style.backgroundColor = "#1b5e20"; // Verde escuro durante análise
-                } else if (['canceled', 'expired', 'refunded'].includes(status)) {
+                } 
+                // 2. Aguardando pagamento (Pendente)
+                else if (status === 'pending' || status === 'under_review') {
+                    console.log("Pagamento ainda pendente. Mantendo tela aberta...");
+                    // A tela continua no QR Code e o polling continua
+                } 
+                // 3. Tempo esgotado ou cancelado
+                else if (status === 'expired' || status === 'canceled' || status === 'refunded') {
+                    console.log("O tempo para pagamento expirou ou foi cancelado.");
                     triggerError();
                 }
             }
         } catch (e) {
-            console.error("Erro polling:", e);
+            console.error("Erro ao verificar status:", e);
         }
     }, 2000);
 }
