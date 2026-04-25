@@ -28,6 +28,11 @@ function clearDisplay() {
     resetTerminal();
 }
 
+function cancelarVenda() {
+    console.log("Venda cancelada pelo operador.");
+    resetTerminal();
+}
+
 function resetTerminal() {
     if (pollingInterval) clearInterval(pollingInterval);
     currentAmount = "";

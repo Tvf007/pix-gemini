@@ -157,6 +157,20 @@ button:active {
     border-radius: 10px;
 }
 
+.btn-cancel {
+    background: transparent;
+    border: 1px solid #ff5252;
+    color: #ff5252;
+    padding: 10px 20px;
+    margin-top: 15px;
+    font-size: 14px;
+    width: 100%;
+}
+
+.btn-cancel:active {
+    background: rgba(255, 82, 82, 0.1);
+}
+
 .hidden {
     display: none !important;
 }
