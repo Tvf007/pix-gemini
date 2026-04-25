@@ -7,6 +7,7 @@ export default async function handler(req, res) {
 
   try {
     const { amount, description } = req.body;
+    console.log('Recebendo requisição de pagamento:', { amount, description });
 
     const response = await fetch('https://buypix.me/api/v1/deposits', {
       method: 'POST',

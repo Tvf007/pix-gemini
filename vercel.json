@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "rewrites": [
     { "source": "/api/pay", "destination": "/api/pay.js" },
     { "source": "/api/status", "destination": "/api/status.js" }
