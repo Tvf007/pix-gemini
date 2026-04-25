@@ -1,14 +1,14 @@
 # Progresso da Integração BuyPix
 
-## [25/04/2026] - Refinamento Profissional (POS Terminal)
-- **Status:** Finalizado e Sincronizado.
+## [25/04/2026] - Correção Crítica de Polling e Telas de Status
+- **Status:** Entregue e Estabilizado.
 - **Arquivos Modificados:**
-  - `index.html`: Novo viewport e elementos de UI de sucesso.
-  - `style.css`: Otimização para toque e animações de status.
-  - `script.js`: Polling acelerado (2s) e lógica de reset.
+  - `api/status.js`: Logs de debug adicionados e repasse de status bruto.
+  - `script.js`: Nova lógica de `stopAndShowSuccess/Error` e polling robusto.
+  - `style.css`: Classes `.success-screen` e `.error-screen` com animações.
+  - `index.html`: Estrutura de containers para feedbacks visuais.
 - **Atividades:**
-  - Implementação de anti-zoom e touch-action para balcão.
-  - Adição de feedback visual agressivo para confirmação de pagamento.
-  - Sincronização automática com GitHub.
-- **Tempo total:** 1 hora e 15 minutos.
-- **Próximos Passos:** Monitorar logs da Vercel para garantir estabilidade.
+  - Implementação de tratamento para status PAID, CONFIRMED, CANCELED e EXPIRED.
+  - Melhoria radical na experiência de feedback pós-pagamento.
+- **Tempo total:** 1 hora e 45 minutos.
+- **Problemas encontrados:** Necessidade de normalizar os status (toUpperCase) para evitar inconsistências entre API e Frontend.

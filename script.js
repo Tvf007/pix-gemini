@@ -25,10 +25,9 @@ function clearDisplay() {
 }
 
 function resetTerminal() {
-    clearInterval(pollingInterval);
+    if (pollingInterval) clearInterval(pollingInterval);
     currentAmount = "";
     
-    // Reset de Interface
     document.getElementById('terminal').classList.remove('pago', 'negado');
     document.getElementById('screen-success').classList.add('hidden');
     document.getElementById('screen-error').classList.add('hidden');
@@ -41,9 +40,14 @@ function resetTerminal() {
 }
 
 async function generatePix() {
-    if (currentAmount === "" || parseInt(currentAmount) === 0) return;
-
     const amount = parseFloat(currentAmount) / 100;
+
+    // Validação de valor mínimo BuyPix
+    if (amount < 5.00) {
+        alert("Valor mínimo R$ 5,00");
+        return;
+    }
+
     document.getElementById('status-msg').innerText = "Gerando PIX...";
     
     try {
@@ -80,19 +84,29 @@ function startPolling(id) {
             const result = await response.json();
 
             if (result.success) {
-                const status = result.data.status.toUpperCase();
-                console.log("Polling status:", status);
+                const status = result.data.status.toLowerCase();
+                console.log("Status oficial:", status);
 
-                if (status === 'PAID' || status === 'CONFIRMED' || status === 'DEPIX_SENT') {
+                // Status de sucesso oficiais da BuyPix
+                if (status === 'depix_sent' || status === 'paid' || status === 'confirmed' || status === 'completed') {
+                    playSuccessSound();
                     stopAndShowSuccess();
-                } else if (status === 'CANCELED' || status === 'EXPIRED' || status === 'REFUNDED') {
+                } else if (status === 'canceled' || status === 'expired' || status === 'refunded') {
                     stopAndShowError();
                 }
             }
         } catch (e) {
-            console.error("Polling error:", e);
+            console.error("Erro no polling:", e);
         }
     }, 2000);
+}
+
+function playSuccessSound() {
+    const sound = document.getElementById('sound-success');
+    if (sound) {
+        sound.currentTime = 0;
+        sound.play().catch(e => console.log("Erro ao tocar som:", e));
+    }
 }
 
 function stopAndShowSuccess() {
@@ -100,7 +114,6 @@ function stopAndShowSuccess() {
     document.getElementById('main-screen').classList.add('hidden');
     document.getElementById('qr-container').classList.add('hidden');
     document.getElementById('screen-success').classList.remove('hidden');
-    
     if (navigator.vibrate) navigator.vibrate([100, 30, 100]);
 }
 
@@ -109,6 +122,4 @@ function stopAndShowError() {
     document.getElementById('main-screen').classList.add('hidden');
     document.getElementById('qr-container').classList.add('hidden');
     document.getElementById('screen-error').classList.remove('hidden');
-    
-    if (navigator.vibrate) navigator.vibrate(500);
 }
