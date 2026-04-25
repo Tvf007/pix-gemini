@@ -28,7 +28,6 @@ function resetTerminal() {
     if (pollingInterval) clearInterval(pollingInterval);
     currentAmount = "";
     
-    // Reset visual
     document.body.style.backgroundColor = "#121212";
     document.getElementById('terminal').classList.remove('pago', 'negado');
     document.getElementById('screen-success').classList.add('hidden');
@@ -43,7 +42,6 @@ function resetTerminal() {
 
 async function generatePix() {
     const amount = parseFloat(currentAmount) / 100;
-
     if (amount < 5.00) {
         alert("Valor mínimo R$ 5,00");
         return;
@@ -65,7 +63,7 @@ async function generatePix() {
             document.getElementById('qr-container').classList.remove('hidden');
             document.getElementById('keypad').classList.add('hidden');
             document.getElementById('status-msg').innerText = "Aguardando pagamento...";
-            startPolling(result.data.id);
+            startPolling(result.data.id, amount);
         } else {
             alert("Erro: " + result.message);
             resetTerminal();
@@ -76,7 +74,7 @@ async function generatePix() {
     }
 }
 
-function startPolling(id) {
+function startPolling(id, amountValue) {
     if (pollingInterval) clearInterval(pollingInterval);
     
     pollingInterval = setInterval(async () => {
@@ -86,11 +84,17 @@ function startPolling(id) {
 
             if (result.success) {
                 const status = result.data.status.toLowerCase();
-                console.log("Status detectado:", status);
+                console.log("Status atual:", status);
 
-                if (status === 'deposit.completed' || status === 'paid' || status === 'confirmed' || status === 'depix_sent') {
+                // GATILHO IMEDIATO: Qualquer sinal de que o PIX foi enviado/recebido
+                // Ignora a liquidação de 5h para dar feedback ao lojista
+                const successStatuses = ['depix_sent', 'paid', 'confirmed', 'completed', 'deposit.completed', 'processing'];
+                const errorStatuses = ['canceled', 'expired', 'refunded', 'deposit.canceled', 'deposit.expired'];
+
+                if (successStatuses.includes(status)) {
+                    saveLocalSale(amountValue);
                     handleSuccess();
-                } else if (status === 'deposit.canceled' || status === 'deposit.expired' || status === 'canceled' || status === 'expired') {
+                } else if (errorStatuses.includes(status)) {
                     handleError();
                 }
             }
@@ -100,9 +104,20 @@ function startPolling(id) {
     }, 2000);
 }
 
+// Contingência: Salva a venda localmente para o relatório enquanto a API não liquida (trava de 5h)
+function saveLocalSale(amount) {
+    let sales = JSON.parse(localStorage.getItem('pending_sales') || '[]');
+    sales.push({
+        amount: amount,
+        timestamp: new Date().toISOString(),
+        status: 'Aguardando Liquidação (5h)'
+    });
+    localStorage.setItem('pending_sales', JSON.stringify(sales));
+}
+
 function handleSuccess() {
     clearInterval(pollingInterval);
-    document.body.style.backgroundColor = "#28a745"; // Verde vibrante
+    document.body.style.backgroundColor = "#28a745"; 
     document.getElementById('main-screen').classList.add('hidden');
     document.getElementById('qr-container').classList.add('hidden');
     document.getElementById('screen-success').classList.remove('hidden');
@@ -115,7 +130,7 @@ function handleSuccess() {
 
 function handleError() {
     clearInterval(pollingInterval);
-    document.body.style.backgroundColor = "#dc3545"; // Vermelho
+    document.body.style.backgroundColor = "#dc3545";
     document.getElementById('main-screen').classList.add('hidden');
     document.getElementById('qr-container').classList.add('hidden');
     document.getElementById('screen-error').classList.remove('hidden');

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BuyPix - Relatório Real</title>
+    <title>BuyPix - Relatório (Com Contingência)</title>
     <style>
         body { background: #121212; color: white; font-family: sans-serif; padding: 20px; touch-action: manipulation; }
         .card { background: #1e1e1e; padding: 20px; border-radius: 15px; max-width: 600px; margin: auto; }
@@ -12,43 +12,77 @@
         .stat-item { background: #222; padding: 15px; border-radius: 10px; text-align: center; }
         .stat-label { font-size: 12px; color: #888; text-transform: uppercase; }
         .stat-value { font-size: 20px; font-weight: bold; color: #00e676; margin-top: 5px; }
+        .warning-box { background: #332b00; border: 1px solid #ffd600; padding: 10px; border-radius: 5px; margin-bottom: 20px; font-size: 12px; color: #ffd600; }
         .back { display: block; margin-top: 20px; color: #888; text-decoration: none; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #333; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>Resumo de Vendas</h1>
+        <h1>Relatório Consolidado</h1>
+        <div class="warning-box">
+            Nota: Vendas recentes levam até 5 horas para liquidação total no saldo oficial.
+        </div>
         <div class="stat-grid">
             <div class="stat-item">
-                <div class="stat-label">Total Bruto</div>
-                <div class="stat-value" id="total-amount">R$ 0,00</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">Total Líquido</div>
-                <div class="stat-value" id="total-net">R$ 0,00</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">Saldo em Conta</div>
+                <div class="stat-label">Saldo Oficial (BuyPix)</div>
                 <div class="stat-value" id="balance">R$ 0,00</div>
             </div>
+            <div class="stat-item">
+                <div class="stat-label">Vendas Local (Hoje)</div>
+                <div class="stat-value" id="local-total">R$ 0,00</div>
+            </div>
         </div>
+
+        <h3>Vendas Recentes (Locais)</h3>
+        <table id="local-sales-table">
+            <thead>
+                <tr>
+                    <th>Hora</th>
+                    <th>Valor</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <button onclick="clearLocalData()" style="width: 100%; margin-top: 15px; background: #333; color: #888; border: none; padding: 10px; border-radius: 5px;">Limpar Vendas Locais</button>
         <a href="index.html" class="back">← Voltar para Máquina</a>
     </div>
 
     <script>
         async function loadReport() {
+            // Carrega dados oficiais da API
             try {
                 const response = await fetch('/api/report');
                 const result = await response.json();
-                
                 if (result.success) {
-                    const data = result.data;
-                    document.getElementById('total-amount').innerText = `R$ ${data.total_amount.toFixed(2)}`;
-                    document.getElementById('total-net').innerText = `R$ ${data.total_net.toFixed(2)}`;
-                    document.getElementById('balance').innerText = `R$ ${data.balance.toFixed(2)}`;
+                    document.getElementById('balance').innerText = `R$ ${result.data.balance.toFixed(2)}`;
                 }
-            } catch (e) {
-                console.error("Erro ao carregar relatório:", e);
+            } catch (e) { console.error(e); }
+
+            // Carrega dados da contingência local
+            const localSales = JSON.parse(localStorage.getItem('pending_sales') || '[]');
+            const tbody = document.querySelector('#local-sales-table tbody');
+            let localTotal = 0;
+
+            localSales.reverse().forEach(sale => {
+                const row = `<tr>
+                    <td>${new Date(sale.timestamp).toLocaleTimeString()}</td>
+                    <td>R$ ${sale.amount.toFixed(2)}</td>
+                    <td>${sale.status}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+                localTotal += sale.amount;
+            });
+            document.getElementById('local-total').innerText = `R$ ${localTotal.toFixed(2)}`;
+        }
+
+        function clearLocalData() {
+            if(confirm("Deseja limpar o histórico de vendas locais?")) {
+                localStorage.removeItem('pending_sales');
+                location.reload();
             }
         }
         loadReport();

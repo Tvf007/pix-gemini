@@ -14,11 +14,13 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-    console.log(`[BuyPix] Status Depósito ${id}:`, data.data?.status);
+    
+    // LOG CRÍTICO: Registra o JSON inteiro para diagnóstico da trava de 5h
+    console.log(`[DEBUG BuyPix] Resposta Completa ID ${id}:`, JSON.stringify(data, null, 2));
     
     return res.status(response.status).json(data);
   } catch (error) {
-    console.error('[BuyPix] Erro status:', error);
+    console.error('[DEBUG BuyPix] Erro na consulta:', error);
     return res.status(500).json({ success: false, message: error.message });
   }
 }
