@@ -19,9 +19,62 @@ body {
     user-select: none;
     -webkit-user-select: none;
 }
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Telas de Status */
+.success-screen {
+    background: #00e676 !important;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 20px;
+    z-index: 10;
+}
+
+.error-screen {
+    background: #ff5252 !important;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 20px;
+    z-index: 10;
+}
+
+.status-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+}
+
+.status-text {
+    font-size: 24px;
+    font-weight: bold;
+    color: #000;
+    text-transform: uppercase;
+}
 
 .terminal {
+    position: relative;
     background: var(--surface-color);
+...
     padding: 20px;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);

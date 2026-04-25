@@ -14,8 +14,11 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
+    console.log(`Status do depósito ${id}:`, data.data?.status || 'desconhecido');
+    
     return res.status(response.status).json(data);
   } catch (error) {
+    console.error('Erro ao consultar status:', error);
     return res.status(500).json({ success: false, message: error.message });
   }
 }

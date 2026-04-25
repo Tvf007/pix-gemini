@@ -7,7 +7,21 @@
 </head>
 <body>
     <div class="terminal" id="terminal">
-        <div class="screen">
+        <!-- Tela de Sucesso -->
+        <div id="screen-success" class="success-screen hidden fade-in">
+            <div class="status-icon">✅</div>
+            <div class="status-text">Pagamento Recebido</div>
+            <button class="btn-confirm" style="margin-top: 30px; width: 80%; color: #000; border: 2px solid #000;" onclick="resetTerminal()">Nova Venda</button>
+        </div>
+
+        <!-- Tela de Erro -->
+        <div id="screen-error" class="error-screen hidden fade-in">
+            <div class="status-icon">❌</div>
+            <div class="status-text">Pagamento não realizado</div>
+            <button class="btn-confirm" style="margin-top: 30px; width: 80%; background: #000; color: #fff;" onclick="resetTerminal()">Tentar Novamente</button>
+        </div>
+
+        <div class="screen" id="main-screen">
             <div class="brand">BuyPix Terminal</div>
             <div class="display" id="display">R$ 0,00</div>
             <div class="status-msg" id="status-msg">Insira o valor</div>
