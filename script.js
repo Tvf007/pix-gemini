@@ -1,6 +1,10 @@
 let currentAmount = "";
 let pollingInterval = null;
 
+// Pré-carregamento do som para evitar bloqueio do navegador
+const successSound = new Audio("https://www.soundjay.com/misc/sounds/cash-register-purchase-1.mp3");
+successSound.load();
+
 function updateDisplay() {
     const display = document.getElementById('display');
     if (currentAmount === "") {
@@ -28,8 +32,9 @@ function resetTerminal() {
     if (pollingInterval) clearInterval(pollingInterval);
     currentAmount = "";
     
+    // Reset visual completo
     document.body.style.backgroundColor = "#121212";
-    document.getElementById('terminal').classList.remove('pago', 'negado');
+    document.getElementById('terminal').style.backgroundColor = "";
     document.getElementById('screen-success').classList.add('hidden');
     document.getElementById('screen-error').classList.add('hidden');
     document.getElementById('main-screen').classList.remove('hidden');
@@ -41,11 +46,18 @@ function resetTerminal() {
 }
 
 async function generatePix() {
-    const amount = parseFloat(currentAmount) / 100;
-    if (amount < 5.00) {
+    const amountValue = parseFloat(currentAmount) / 100;
+    
+    if (amountValue < 5.00) {
         alert("Valor mínimo R$ 5,00");
         return;
     }
+
+    // Tenta tocar o som mudo para "pedir permissão" ao navegador
+    successSound.play().then(() => {
+        successSound.pause();
+        successSound.currentTime = 0;
+    }).catch(() => {});
 
     document.getElementById('status-msg').innerText = "Gerando PIX...";
     
@@ -53,7 +65,7 @@ async function generatePix() {
         const response = await fetch('/api/pay', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ amount })
+            body: JSON.stringify({ amount: amountValue })
         });
 
         const result = await response.json();
@@ -63,7 +75,7 @@ async function generatePix() {
             document.getElementById('qr-container').classList.remove('hidden');
             document.getElementById('keypad').classList.add('hidden');
             document.getElementById('status-msg').innerText = "Aguardando pagamento...";
-            startPolling(result.data.id, amount);
+            startPolling(result.data.id, amountValue);
         } else {
             alert("Erro: " + result.message);
             resetTerminal();
@@ -74,7 +86,7 @@ async function generatePix() {
     }
 }
 
-function startPolling(id, amountValue) {
+function startPolling(id, amount) {
     if (pollingInterval) clearInterval(pollingInterval);
     
     pollingInterval = setInterval(async () => {
@@ -84,69 +96,59 @@ function startPolling(id, amountValue) {
 
             if (result.success) {
                 const status = result.data.status.toLowerCase();
-                console.log("Status em tempo real:", status);
+                console.log("Polling status:", status);
 
-                // GATILHO DE BALCÃO: Aceita qualquer status que indique pagamento em processamento ou concluído
-                // Isso ignora a trava de 5h para o feedback visual/sonoro
-                const successSignals = [
-                    'depix_sent', 'paid', 'confirmed', 'completed', 
-                    'deposit.completed', 'processing', 'under_review', 
-                    'received', 'deposit.under_review'
-                ];
-                
-                const failureSignals = [
-                    'canceled', 'expired', 'refunded', 
-                    'deposit.canceled', 'deposit.expired'
-                ];
+                // Gatilhos de Sucesso (inclui intermediários para o balcão)
+                const isSuccess = [
+                    'paid', 'confirmed', 'completed', 'depix_sent', 
+                    'deposit.completed', 'processing', 'received'
+                ].includes(status);
 
-                if (successSignals.includes(status)) {
-                    console.log(">>> SUCESSO DETECTADO! Disparando notificações...");
-                    saveLocalSale(amountValue, id);
-                    handleSuccess();
-                } else if (failureSignals.includes(status)) {
-                    handleError();
+                // Gatilho de Processamento (Visual apenas)
+                const isProcessing = ['under_review', 'deposit.under_review'].includes(status);
+
+                if (isSuccess) {
+                    saveLocalSale(amount, id);
+                    triggerSuccess();
+                } else if (isProcessing) {
+                    document.getElementById('status-msg').innerText = "Pagamento em Processamento...";
+                    document.body.style.backgroundColor = "#1b5e20"; // Verde escuro durante análise
+                } else if (['canceled', 'expired', 'refunded'].includes(status)) {
+                    triggerError();
                 }
             }
         } catch (e) {
-            console.error("Erro no polling de diagnóstico:", e);
+            console.error("Erro polling:", e);
         }
     }, 2000);
 }
 
-// Persistência local para contornar o delay de 5h no relatório oficial
 function saveLocalSale(amount, id) {
     let sales = JSON.parse(localStorage.getItem('pending_sales') || '[]');
-    // Evita duplicidade se o polling rodar mais de uma vez antes de parar
     if (!sales.find(s => s.id === id)) {
-        sales.push({
-            id: id,
-            amount: amount,
-            timestamp: new Date().toISOString(),
-            status: 'PAGO (Aguardando Liquidação)'
-        });
+        sales.push({ id, amount, timestamp: new Date().toISOString() });
         localStorage.setItem('pending_sales', JSON.stringify(sales));
     }
 }
 
-function handleSuccess() {
+function triggerSuccess() {
     clearInterval(pollingInterval);
-    document.body.style.backgroundColor = "#28a745"; 
+    
+    // UI de Sucesso Máximo
+    document.body.style.backgroundColor = "#00c853"; // Verde Vibrante
     document.getElementById('main-screen').classList.add('hidden');
     document.getElementById('qr-container').classList.add('hidden');
     document.getElementById('screen-success').classList.remove('hidden');
     
-    const sound = document.getElementById('sound-success');
-    if (sound) {
-        sound.currentTime = 0;
-        sound.play().catch(e => console.log("Erro ao tocar som de sucesso:", e));
-    }
+    // Som de Plin
+    successSound.play().catch(e => console.log("Erro áudio:", e));
     
     if (navigator.vibrate) navigator.vibrate([100, 30, 100]);
 }
 
-function handleError() {
+function triggerError() {
     clearInterval(pollingInterval);
-    document.body.style.backgroundColor = "#dc3545";
+    document.body.style.backgroundColor = "#d50000"; // Vermelho
     document.getElementById('main-screen').classList.add('hidden');
     document.getElementById('qr-container').classList.add('hidden');
     document.getElementById('screen-error').classList.remove('hidden');
