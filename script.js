@@ -29,7 +29,10 @@ function resetTerminal() {
     document.getElementById('terminal').classList.remove('pago', 'negado');
     document.getElementById('qr-container').classList.add('hidden');
     document.getElementById('keypad').classList.remove('hidden');
+    document.getElementById('btn-new-sale').classList.add('hidden');
+    document.getElementById('success-icon').classList.add('hidden');
     document.getElementById('status-msg').innerText = "Insira o valor";
+    updateDisplay();
 }
 
 async function generatePix() {
@@ -69,19 +72,26 @@ function startPolling(id) {
             const response = await fetch(`/api/status?id=${id}`);
             const result = await response.json();
 
-            if (result.success && result.data.status === 'depix_sent') {
-                document.getElementById('terminal').classList.add('pago');
-                document.getElementById('status-msg').innerText = "PAGAMENTO CONFIRMADO!";
-                clearInterval(pollingInterval);
-                setTimeout(clearDisplay, 5000);
-            } else if (result.success && result.data.status === 'refunded') {
-                document.getElementById('terminal').classList.add('negado');
-                document.getElementById('status-msg').innerText = "PAGAMENTO REEMBOLSADO";
-                clearInterval(pollingInterval);
-                setTimeout(clearDisplay, 5000);
+            if (result.success) {
+                const status = result.data.status;
+                if (status === 'depix_sent' || status === 'paid' || status === 'confirmed') {
+                    document.getElementById('terminal').classList.add('pago');
+                    document.getElementById('status-msg').innerText = "PAGAMENTO CONFIRMADO";
+                    document.getElementById('qr-container').classList.add('hidden');
+                    document.getElementById('success-icon').classList.remove('hidden');
+                    document.getElementById('btn-new-sale').classList.remove('hidden');
+                    clearInterval(pollingInterval);
+                    // Vibração de sucesso no celular se disponível
+                    if (navigator.vibrate) navigator.vibrate([100, 30, 100]);
+                } else if (status === 'refunded') {
+                    document.getElementById('terminal').classList.add('negado');
+                    document.getElementById('status-msg').innerText = "PAGAMENTO REEMBOLSADO";
+                    document.getElementById('btn-new-sale').classList.remove('hidden');
+                    clearInterval(pollingInterval);
+                }
             }
         } catch (e) {
             console.error("Polling error", e);
         }
-    }, 3000);
+    }, 2000); // Polling a cada 2 segundos
 }

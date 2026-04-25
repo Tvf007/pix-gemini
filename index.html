@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BuyPix - Máquina de Cartão</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -12,6 +11,7 @@
             <div class="brand">BuyPix Terminal</div>
             <div class="display" id="display">R$ 0,00</div>
             <div class="status-msg" id="status-msg">Insira o valor</div>
+            <div id="success-icon" class="hidden" style="font-size: 50px; margin: 10px 0;">✅</div>
         </div>
 
         <div id="qr-container" class="hidden">
@@ -33,6 +33,8 @@
             <button onclick="addNumber(0)">0</button>
             <button class="btn-confirm" onclick="generatePix()">OK</button>
         </div>
+
+        <button id="btn-new-sale" class="hidden btn-confirm" style="width: 100%; margin-top: 15px;" onclick="clearDisplay()">Nova Venda</button>
 
         <div class="footer">
             <a href="relatorio.html">Relatório de Vendas</a>

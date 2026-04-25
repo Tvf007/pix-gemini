@@ -15,6 +15,9 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .terminal {
@@ -24,7 +27,7 @@ body {
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     width: 320px;
     text-align: center;
-    transition: background 0.5s ease;
+    transition: all 0.3s ease-in-out;
 }
 
 .screen {
@@ -33,6 +36,7 @@ body {
     border-radius: 10px;
     margin-bottom: 20px;
     border: 2px solid #333;
+    transition: all 0.3s ease;
 }
 
 .brand {
@@ -49,9 +53,10 @@ body {
 }
 
 .status-msg {
-    font-size: 14px;
+    font-size: 18px;
     margin-top: 10px;
     color: #aaa;
+    font-weight: 500;
 }
 
 .keypad {
@@ -69,6 +74,7 @@ button {
     border-radius: 10px;
     cursor: pointer;
     transition: transform 0.1s, background 0.2s;
+    touch-action: manipulation;
 }
 
 button:active {
@@ -99,20 +105,25 @@ button:active {
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 /* Status Classes */
 .pago {
-    background: #1b5e20 !important;
+    background: #00c853 !important;
 }
 
-.pago .display {
-    color: #fff;
+.pago .screen {
+    background: transparent;
+    border-color: #fff;
+}
+
+.pago .display, .pago .status-msg, .pago .brand {
+    color: #fff !important;
 }
 
 .negado {
-    background: #b71c1c !important;
+    background: #d50000 !important;
 }
 
 .footer {
