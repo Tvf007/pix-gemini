@@ -1,0 +1,126 @@
+:root {
+    --bg-color: #121212;
+    --surface-color: #1e1e1e;
+    --primary-color: #00e676;
+    --text-color: #ffffff;
+    --error-color: #ff5252;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.terminal {
+    background: var(--surface-color);
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    width: 320px;
+    text-align: center;
+    transition: background 0.5s ease;
+}
+
+.screen {
+    background: #000;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 2px solid #333;
+}
+
+.brand {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 10px;
+}
+
+.display {
+    font-size: 32px;
+    font-weight: bold;
+    color: var(--primary-color);
+    min-height: 40px;
+}
+
+.status-msg {
+    font-size: 14px;
+    margin-top: 10px;
+    color: #aaa;
+}
+
+.keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+button {
+    background: #333;
+    border: none;
+    color: white;
+    padding: 20px;
+    font-size: 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.2s;
+}
+
+button:active {
+    transform: scale(0.95);
+    background: #444;
+}
+
+.btn-confirm {
+    background: var(--primary-color);
+    color: #000;
+    font-weight: bold;
+}
+
+.btn-clear {
+    background: var(--error-color);
+}
+
+#qr-container {
+    margin: 20px 0;
+}
+
+#qr-code {
+    width: 200px;
+    height: 200px;
+    background: white;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Status Classes */
+.pago {
+    background: #1b5e20 !important;
+}
+
+.pago .display {
+    color: #fff;
+}
+
+.negado {
+    background: #b71c1c !important;
+}
+
+.footer {
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+}

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BuyPix - Máquina de Cartão</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="terminal" id="terminal">
+        <div class="screen">
+            <div class="brand">BuyPix Terminal</div>
+            <div class="display" id="display">R$ 0,00</div>
+            <div class="status-msg" id="status-msg">Insira o valor</div>
+        </div>
+
+        <div id="qr-container" class="hidden">
+            <img id="qr-code" src="" alt="QR Code PIX">
+            <p>Escaneie para pagar</p>
+        </div>
+
+        <div class="keypad" id="keypad">
+            <button onclick="addNumber(1)">1</button>
+            <button onclick="addNumber(2)">2</button>
+            <button onclick="addNumber(3)">3</button>
+            <button onclick="addNumber(4)">4</button>
+            <button onclick="addNumber(5)">5</button>
+            <button onclick="addNumber(6)">6</button>
+            <button onclick="addNumber(7)">7</button>
+            <button onclick="addNumber(8)">8</button>
+            <button onclick="addNumber(9)">9</button>
+            <button class="btn-clear" onclick="clearDisplay()">C</button>
+            <button onclick="addNumber(0)">0</button>
+            <button class="btn-confirm" onclick="generatePix()">OK</button>
+        </div>
+
+        <div class="footer">
+            <a href="relatorio.html">Relatório de Vendas</a>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BuyPix - Relatório</title>
+    <style>
+        body { background: #121212; color: white; font-family: sans-serif; padding: 20px; }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 15px; max-width: 600px; margin: auto; }
+        h1 { color: #00e676; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #333; }
+        .total-box { margin-top: 20px; font-size: 24px; text-align: right; color: #00e676; }
+        .back { display: block; margin-top: 20px; color: #888; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Relatório de Hoje</h1>
+        <table id="sales-table">
+            <thead>
+                <tr>
+                    <th>Data/Hora</th>
+                    <th>Valor</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Preenchido via API -->
+            </tbody>
+        </table>
+        <div class="total-box" id="total-sum">Total: R$ 0,00</div>
+        <a href="index.html" class="back">← Voltar para Máquina</a>
+    </div>
+
+    <script>
+        async function loadReport() {
+            // Nota: Em um sistema real, você chamaria um endpoint que lista os depósitos do dia.
+            // Para este exemplo, vamos simular ou buscar os últimos depósitos.
+            try {
+                // Como não temos um endpoint específico de listagem criado, 
+                // aqui apenas mostramos a lógica que você usaria.
+                // O BuyPix tem GET /deposits que retorna uma lista.
+                const response = await fetch('/api/status?id=list'); // Exemplo hipotético
+                // Simulação de dados se o endpoint de lista não estiver pronto
+                const data = [
+                    { created_at: '2026-04-25T10:00:00Z', amount: 50.00, status: 'depix_sent' },
+                    { created_at: '2026-04-25T11:30:00Z', amount: 12.50, status: 'depix_sent' }
+                ];
+                
+                const tbody = document.querySelector('#sales-table tbody');
+                let total = 0;
+                
+                data.forEach(sale => {
+                    const row = `<tr>
+                        <td>${new Date(sale.created_at).toLocaleString()}</td>
+                        <td>R$ ${sale.amount.toFixed(2)}</td>
+                        <td>${sale.status}</td>
+                    </tr>`;
+                    tbody.innerHTML += row;
+                    if(sale.status === 'depix_sent') total += sale.amount;
+                });
+                
+                document.getElementById('total-sum').innerText = `Total: R$ ${total.toFixed(2)}`;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        loadReport();
+    </script>
+</body>
+</html>
