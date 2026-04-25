@@ -28,6 +28,8 @@ function resetTerminal() {
     if (pollingInterval) clearInterval(pollingInterval);
     currentAmount = "";
     
+    // Reset visual
+    document.body.style.backgroundColor = "#121212";
     document.getElementById('terminal').classList.remove('pago', 'negado');
     document.getElementById('screen-success').classList.add('hidden');
     document.getElementById('screen-error').classList.add('hidden');
@@ -42,7 +44,6 @@ function resetTerminal() {
 async function generatePix() {
     const amount = parseFloat(currentAmount) / 100;
 
-    // Validação de valor mínimo BuyPix
     if (amount < 5.00) {
         alert("Valor mínimo R$ 5,00");
         return;
@@ -85,40 +86,36 @@ function startPolling(id) {
 
             if (result.success) {
                 const status = result.data.status.toLowerCase();
-                console.log("Status oficial:", status);
+                console.log("Status detectado:", status);
 
-                // Status de sucesso oficiais da BuyPix
-                if (status === 'depix_sent' || status === 'paid' || status === 'confirmed' || status === 'completed') {
-                    playSuccessSound();
-                    stopAndShowSuccess();
-                } else if (status === 'canceled' || status === 'expired' || status === 'refunded') {
-                    stopAndShowError();
+                if (status === 'deposit.completed' || status === 'paid' || status === 'confirmed' || status === 'depix_sent') {
+                    handleSuccess();
+                } else if (status === 'deposit.canceled' || status === 'deposit.expired' || status === 'canceled' || status === 'expired') {
+                    handleError();
                 }
             }
         } catch (e) {
-            console.error("Erro no polling:", e);
+            console.error("Erro polling:", e);
         }
     }, 2000);
 }
 
-function playSuccessSound() {
-    const sound = document.getElementById('sound-success');
-    if (sound) {
-        sound.currentTime = 0;
-        sound.play().catch(e => console.log("Erro ao tocar som:", e));
-    }
-}
-
-function stopAndShowSuccess() {
+function handleSuccess() {
     clearInterval(pollingInterval);
+    document.body.style.backgroundColor = "#28a745"; // Verde vibrante
     document.getElementById('main-screen').classList.add('hidden');
     document.getElementById('qr-container').classList.add('hidden');
     document.getElementById('screen-success').classList.remove('hidden');
+    
+    const sound = document.getElementById('sound-success');
+    if (sound) sound.play().catch(e => console.log("Erro áudio:", e));
+    
     if (navigator.vibrate) navigator.vibrate([100, 30, 100]);
 }
 
-function stopAndShowError() {
+function handleError() {
     clearInterval(pollingInterval);
+    document.body.style.backgroundColor = "#dc3545"; // Vermelho
     document.getElementById('main-screen').classList.add('hidden');
     document.getElementById('qr-container').classList.add('hidden');
     document.getElementById('screen-error').classList.remove('hidden');

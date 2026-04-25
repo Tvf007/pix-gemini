@@ -14,11 +14,11 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-    console.log(`Status do depósito ${id}:`, data.data?.status || 'desconhecido');
+    console.log(`[BuyPix] Status Depósito ${id}:`, data.data?.status);
     
     return res.status(response.status).json(data);
   } catch (error) {
-    console.error('Erro ao consultar status:', error);
+    console.error('[BuyPix] Erro status:', error);
     return res.status(500).json({ success: false, message: error.message });
   }
 }
