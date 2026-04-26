@@ -78,7 +78,7 @@ async function generatePix() {
             document.getElementById('qr-code').src = result.data.pix_qr_code_base64;
             document.getElementById('qr-container').classList.remove('hidden');
             document.getElementById('keypad').classList.add('hidden');
-            document.getElementById('footer-actions').classList.add('hidden');
+            if(document.getElementById('footer-actions')) document.getElementById('footer-actions').classList.add('hidden');
             document.getElementById('status-msg').innerText = "Aguardando pagamento...";
             startPolling(result.data.id, amountValue);
         } else {
@@ -178,7 +178,6 @@ async function createPaymentLink() {
             document.getElementById('link-result-area').classList.remove('hidden');
             document.getElementById('generated-link-url').innerText = url;
             
-            // Salva o link no relatório local também para controle
             saveLocalSale(parseFloat(amount), result.data.id + "_LINK");
 
             document.getElementById('btn-share-link').onclick = () => {
@@ -191,15 +190,23 @@ async function createPaymentLink() {
 
 async function fetchRecentSales() {
     const list = document.getElementById('receipt-list');
-    list.innerHTML = '<p style="color: #888; text-align:center;">Buscando vendas...</p>';
+    list.innerHTML = '<p style="color: #888; text-align:center;">Buscando vendas de hoje...</p>';
 
     try {
         const response = await fetch('/api/status');
         const result = await response.json();
 
-        if (result.success && result.data.length > 0) {
-            list.innerHTML = '';
-            result.data.forEach(sale => {
+        let sales = [];
+        if (result.success) {
+            // Suporta lista simples ou paginada
+            sales = Array.isArray(result.data) ? result.data : (result.data.data || []);
+        }
+
+        if (sales.length > 0) {
+            list.innerHTML = `
+                <button onclick="fetchRecentSales()" style="width:100%; background:#333; color:#00e676; border:1px solid #444; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; cursor:pointer;">🔄 Atualizar Lista</button>
+            `;
+            sales.forEach(sale => {
                 const isPaid = ['depix_sent', 'paid', 'confirmed', 'completed'].includes(sale.status.toLowerCase());
                 const color = isPaid ? '#00e676' : '#ffea00';
                 
@@ -233,10 +240,13 @@ async function fetchRecentSales() {
                 list.appendChild(item);
             });
         } else {
-            list.innerHTML = '<p style="color: #888; text-align:center;">Nenhuma venda encontrada.</p>';
+            list.innerHTML = `
+                <button onclick="fetchRecentSales()" style="width:100%; background:#333; color:#00e676; border:1px solid #444; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; cursor:pointer;">🔄 Atualizar Lista</button>
+                <p style="color: #888; text-align:center;">Nenhuma venda encontrada para hoje.</p>
+            `;
         }
     } catch (e) {
-        list.innerHTML = '<p style="color: #ff5252; text-align:center;">Erro ao carregar vendas.</p>';
+        list.innerHTML = '<p style="color: #ff5252; text-align:center;">Erro ao carregar vendas. Verifique a conexão.</p>';
     }
 }
 

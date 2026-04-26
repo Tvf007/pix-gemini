@@ -7,7 +7,9 @@ export default async function handler(req, res) {
     if (id) {
       url += `/${id}`;
     } else {
-      url += '?per_page=10'; // Busca as 10 últimas se não houver ID
+      // Filtra por data de hoje (YYYY-MM-DD) para puxar itens do dia atual
+      const today = new Date().toISOString().split('T')[0];
+      url += `?date_from=${today}&per_page=50`;
     }
 
     const response = await fetch(url, {
