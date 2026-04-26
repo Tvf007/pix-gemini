@@ -69,7 +69,7 @@
 
         function clearLocalData() {
             const password = prompt("Digite a senha para limpar o histórico:");
-            if (password === "22 01") {
+            if (password === "2201") {
                 if(confirm("Deseja apagar o histórico de vendas local?")) {
                     localStorage.removeItem('pending_sales');
                     loadReport();

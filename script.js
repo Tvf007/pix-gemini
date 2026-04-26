@@ -178,6 +178,9 @@ async function createPaymentLink() {
             document.getElementById('link-result-area').classList.remove('hidden');
             document.getElementById('generated-link-url').innerText = url;
             
+            // Salva o link no relatório local também para controle
+            saveLocalSale(parseFloat(amount), result.data.id + "_LINK");
+
             document.getElementById('btn-share-link').onclick = () => {
                 const text = `💰 Pagamento Pix\nValor: R$ ${amount}\nReferente a: ${desc || 'Venda'}\nLink: ${url}\n\nClique no link, na página que abrir você verá o QR code e a opção Pix copiar e cola, favor enviar o comprovante após o pagamento obrigado`;
                 window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
@@ -188,7 +191,7 @@ async function createPaymentLink() {
 
 async function fetchRecentSales() {
     const list = document.getElementById('receipt-list');
-    list.innerHTML = '<p style="color: #888;">Buscando vendas recentes...</p>';
+    list.innerHTML = '<p style="color: #888; text-align:center;">Buscando vendas...</p>';
 
     try {
         const response = await fetch('/api/status');
@@ -201,29 +204,39 @@ async function fetchRecentSales() {
                 const color = isPaid ? '#00e676' : '#ffea00';
                 
                 const item = document.createElement('div');
-                item.style.cssText = "background: #222; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 5px solid " + color;
+                item.className = "receipt-item";
+                item.style.cssText = "background: #222; padding: 15px; border-radius: 10px; margin-bottom: 12px; cursor: pointer; border-left: 6px solid " + color + "; transition: 0.2s;";
                 
-                let html = `<div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-weight:bold; font-size:16px;">R$ ${sale.amount.toFixed(2)}</span>
-                    <span style="color:${color}; font-size:12px; font-weight:bold;">${isPaid ? 'PAGO ✅' : 'PENDENTE'}</span>
-                </div>
-                <div style="font-size:11px; color:#888; margin-top:5px;">
-                    Data: ${new Date(sale.created_at).toLocaleString()}<br>
-                    ${sale.payer_name ? 'Pagador: ' + sale.payer_name : 'ID: ' + sale.id.substring(0,8)}
-                </div>`;
+                item.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-weight:bold; font-size:18px;">R$ ${sale.amount.toFixed(2)}</span>
+                        <span style="color:${color}; font-size:13px; font-weight:bold;">${isPaid ? 'CONCLUÍDO ✅' : 'PENDENTE ⏳'}</span>
+                    </div>
+                    <div style="font-size:12px; color:#888; margin-top:8px;">
+                        Data: ${new Date(sale.created_at).toLocaleString()}<br>
+                        ID: <span style="font-family:monospace;">${sale.id}</span>
+                    </div>
+                    <div id="detail-${sale.id}" class="hidden" style="margin-top:15px; border-top:1px solid #333; padding-top:10px;">
+                        <p><b>Pagador:</b> ${sale.payer_name || 'Aguardando...'}</p>
+                        <p><b>Descrição:</b> ${sale.description || 'Venda PDV'}</p>
+                        ${isPaid ? `<button onclick="shareReceipt('${sale.id}', '${sale.amount}', '${sale.payer_name || 'Cliente'}')" style="width:100%; margin-top:10px; background:#25d366; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">Compartilhar Comprovante</button>` : ''}
+                    </div>
+                `;
 
-                if (isPaid) {
-                    html += `<button onclick="shareReceipt('${sale.id}', '${sale.amount}', '${sale.payer_name || 'Cliente'}')" style="width:100%; margin-top:10px; background:#25d366; color:#fff; border:none; padding:8px; border-radius:5px; font-size:12px; font-weight:bold;">Compartilhar Comprovante</button>`;
-                }
-                
-                item.innerHTML = html;
+                item.onclick = (e) => {
+                    if(e.target.tagName !== 'BUTTON') {
+                        const details = document.getElementById(`detail-${sale.id}`);
+                        details.classList.toggle('hidden');
+                    }
+                };
+
                 list.appendChild(item);
             });
         } else {
-            list.innerHTML = '<p style="color: #888;">Nenhuma venda encontrada recentemente.</p>';
+            list.innerHTML = '<p style="color: #888; text-align:center;">Nenhuma venda encontrada.</p>';
         }
     } catch (e) {
-        list.innerHTML = '<p style="color: #ff5252;">Erro ao carregar vendas.</p>';
+        list.innerHTML = '<p style="color: #ff5252; text-align:center;">Erro ao carregar vendas.</p>';
     }
 }
 
