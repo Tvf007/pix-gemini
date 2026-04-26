@@ -3,6 +3,7 @@
   "rewrites": [
     { "source": "/api/pay", "destination": "/api/pay.js" },
     { "source": "/api/status", "destination": "/api/status.js" },
-    { "source": "/api/report", "destination": "/api/report.js" }
+    { "source": "/api/report", "destination": "/api/report.js" },
+    { "source": "/api/payment-links", "destination": "/api/payment-links.js" }
   ]
 }

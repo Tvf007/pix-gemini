@@ -68,9 +68,14 @@
         }
 
         function clearLocalData() {
-            if(confirm("Deseja apagar o histórico de vendas local?")) {
-                localStorage.removeItem('pending_sales');
-                loadReport();
+            const password = prompt("Digite a senha para limpar o histórico:");
+            if (password === "22 01") {
+                if(confirm("Deseja apagar o histórico de vendas local?")) {
+                    localStorage.removeItem('pending_sales');
+                    loadReport();
+                }
+            } else {
+                alert("Senha incorreta!");
             }
         }
         

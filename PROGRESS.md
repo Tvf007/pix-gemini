@@ -1,15 +1,11 @@
 # Progresso da Integração BuyPix
 
-## [25/04/2026] - Sistema Completo e Profissional
-- **Status:** Finalizado e Implantado.
-- **Arquivos Criados/Modificados:**
-  - `api/report.js`: Novo endpoint de resumo financeiro.
-  - `script.js`: Validação R$ 5, lógica de som e polling oficial.
-  - `relatorio.html`: Dashboard com dados reais da conta.
-  - `index.html`: Suporte a áudio e viewport estrito.
+## [25/04/2026] - Diagnóstico e Correção de Polling
+- **Status:** Correção Crítica Aplicada.
+- **Arquivos Modificados:**
+  - `api/status.js`: Adicionados logs de debug para monitoramento na Vercel.
+  - `script.js`: Reconfigurado para detectar `depix_sent` como status de sucesso.
 - **Atividades:**
-  - Consolidação de feedbacks visuais e sonoros.
-  - Integração de relatórios financeiros via API.
-  - Travas de segurança para conformidade com a API BuyPix.
-- **Tempo total:** 2 horas e 15 minutos.
-- **Problemas encontrados:** Nenhum. O sistema está operando em conformidade total com a documentação oficial.
+  - Análise da documentação BuyPix identificou que o status de sucesso no endpoint GET é `depix_sent`.
+  - Ajustada a lógica de polling para cobrir todos os status oficiais.
+- **Problemas encontrados:** O sistema anteriormente buscava por strings de webhook (ex: deposit.completed) no campo de status do recurso, causando falha na detecção.

@@ -23,11 +23,34 @@
             <button class="btn-confirm" style="margin-top: 30px; width: 80%; background: #000; color: #fff;" onclick="resetTerminal()">Tentar Novamente</button>
         </div>
 
+        <!-- Modal Link de Pagamento -->
+        <div id="modal-link" class="modal hidden fade-in">
+            <div class="modal-content">
+                <h3>Gerar Link de Pagamento</h3>
+                <input type="number" id="link-amount" placeholder="Valor (Ex: 50.00)" step="0.01">
+                <input type="text" id="link-desc" placeholder="Descrição (Opcional)">
+                <button class="btn-confirm" onclick="createPaymentLink()">Gerar e Compartilhar</button>
+                <button class="btn-cancel" onclick="closeModals()">Fechar</button>
+            </div>
+        </div>
+
+        <!-- Modal Verificar Comprovante -->
+        <div id="modal-check" class="modal hidden fade-in">
+            <div class="modal-content">
+                <h3>Verificar Comprovante</h3>
+                <input type="text" id="check-id" placeholder="ID da Transação">
+                <button class="btn-confirm" onclick="checkReceipt()">Verificar</button>
+                <div id="receipt-result" class="hidden" style="margin-top: 15px; text-align: left; font-size: 14px; background: #222; padding: 10px; border-radius: 5px;">
+                    <!-- Resultado aqui -->
+                </div>
+                <button class="btn-cancel" onclick="closeModals()">Fechar</button>
+            </div>
+        </div>
+
         <div class="screen" id="main-screen">
             <div class="brand">BuyPix Terminal</div>
             <div class="display" id="display">R$ 0,00</div>
             <div class="status-msg" id="status-msg">Insira o valor</div>
-            <div id="success-icon" class="hidden" style="font-size: 50px; margin: 10px 0;">✅</div>
         </div>
 
         <div id="qr-container" class="hidden">
@@ -51,7 +74,10 @@
             <button class="btn-confirm" onclick="generatePix()">OK</button>
         </div>
 
-        <button id="btn-new-sale" class="hidden btn-confirm" style="width: 100%; margin-top: 15px;" onclick="clearDisplay()">Nova Venda</button>
+        <div class="footer-actions">
+            <button onclick="openLinkModal()">🔗 Gerar Link</button>
+            <button onclick="openCheckModal()">🔍 Comprovante</button>
+        </div>
 
         <div class="footer">
             <a href="relatorio.html">Relatório de Vendas</a>
