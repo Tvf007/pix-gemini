@@ -6,9 +6,11 @@ function getSuccessSound() {
     return document.getElementById('sound-success');
 }
 
-// Solicita permissão para notificações (para funcionar com tela bloqueada)
-if ("Notification" in window) {
-    Notification.requestPermission();
+// Função para solicitar permissão de notificação (precisa de clique do usuário)
+async function requestNotificationPermission() {
+    if ("Notification" in window && Notification.permission !== "granted") {
+        await Notification.requestPermission();
+    }
 }
 
 function updateDisplay() {
@@ -64,15 +66,15 @@ async function generatePix() {
         return;
     }
 
-    // "Prepara" o som silenciosamente (Volume 0) para desbloquear o navegador
+    // Solicita permissão e prepara o áudio de forma TOTALMENTE muda (muted)
+    requestNotificationPermission();
     const sound = getSuccessSound();
     if(sound) {
-        const originalVolume = sound.volume;
-        sound.volume = 0;
+        sound.muted = true; // Garante silêncio total
         sound.play().then(() => {
             sound.pause();
             sound.currentTime = 0;
-            sound.volume = originalVolume;
+            sound.muted = false; // Deixa pronto para o sucesso
         }).catch(() => {});
     }
 
@@ -145,9 +147,10 @@ function triggerSuccess(amount) {
     document.getElementById('qr-container').classList.add('hidden');
     document.getElementById('screen-success').classList.remove('hidden');
     
-    // TOCA O SOM DE CAIXA REGISTRADORA (PLIN)
+    // SÓ TOCA O SOM AQUI (A HORA QUE FICA VERDE)
     const sound = getSuccessSound();
     if (sound) {
+        sound.muted = false;
         sound.currentTime = 0;
         sound.play().catch(e => console.log("Erro áudio:", e));
     }
@@ -173,12 +176,14 @@ function triggerError() {
 
 // Funções para Modais e Links de Pagamento
 function openLinkModal() { 
+    requestNotificationPermission(); // Pede permissão ao clicar no botão
     document.getElementById('modal-link').classList.remove('hidden'); 
     document.getElementById('link-input-area').classList.remove('hidden');
     document.getElementById('link-result-area').classList.add('hidden');
 }
 
 function openCheckModal() { 
+    requestNotificationPermission(); // Pede permissão ao clicar no botão
     document.getElementById('modal-check').classList.remove('hidden'); 
     fetchRecentSales();
 }
@@ -192,6 +197,13 @@ async function createPaymentLink() {
     const amount = document.getElementById('link-amount').value;
     const desc = document.getElementById('link-desc').value;
     if (amount < 50) { alert("Valor mínimo R$ 50,00"); return; }
+
+    // Prepara áudio para o link também
+    const sound = getSuccessSound();
+    if(sound) {
+        sound.muted = true;
+        sound.play().then(() => { sound.pause(); sound.currentTime = 0; sound.muted = false; }).catch(() => {});
+    }
 
     try {
         const response = await fetch('/api/payment-links', {
@@ -209,8 +221,6 @@ async function createPaymentLink() {
             document.getElementById('btn-share-link').onclick = () => {
                 const text = `💰 Pagamento Pix\nValor: R$ ${amount}\nReferente a: ${desc || 'Venda'}\nLink: ${url}\n\nClique no link, na página que abrir você verá o QR code e a opção Pix copiar e cola, favor enviar o comprovante após o pagamento obrigado`;
                 window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
-                
-                // Monitoramento em segundo plano para o Link
                 startPolling(result.data.id, parseFloat(amount));
             };
         } else { alert(result.message); }
