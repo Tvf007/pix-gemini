@@ -1,7 +1,7 @@
 let currentAmount = "";
 let pollingInterval = null;
 
-// Pré-carregamento do som para evitar bloqueio do navegador
+// Pré-carregamento do som
 const successSound = new Audio("https://www.soundjay.com/misc/sounds/cash-register-purchase-1.mp3");
 successSound.load();
 
@@ -28,18 +28,12 @@ function clearDisplay() {
     resetTerminal();
 }
 
-function cancelarVenda() {
-    console.log("Venda cancelada pelo operador.");
-    resetTerminal();
-}
-
 function resetTerminal() {
     if (pollingInterval) clearInterval(pollingInterval);
     currentAmount = "";
     
-    // Reset visual completo
     document.body.style.backgroundColor = "#121212";
-    document.getElementById('terminal').style.backgroundColor = "";
+    document.getElementById('terminal').classList.remove('pago', 'negado');
     document.getElementById('screen-success').classList.add('hidden');
     document.getElementById('screen-error').classList.add('hidden');
     document.getElementById('main-screen').classList.remove('hidden');
@@ -58,7 +52,6 @@ async function generatePix() {
         return;
     }
 
-    // Tenta tocar o som mudo para "pedir permissão" ao navegador
     successSound.play().then(() => {
         successSound.pause();
         successSound.currentTime = 0;
@@ -101,27 +94,24 @@ function startPolling(id, amount) {
 
             if (result.success) {
                 const status = result.data.status.toLowerCase();
-                console.log("Status oficial da API:", status);
+                console.log("Status detectado:", status);
 
-                // 1. Pagamento identificado (mesmo que aguardando liquidação de 5h)
-                if (status === 'paid' || status === 'confirmed' || status === 'completed' || status === 'depix_sent' || status === 'received') {
-                    console.log("Pagamento identificado com sucesso!");
+                // MAPEMANTO DE SUCESSO REAL (Baseado na documentação GET)
+                // 'depix_sent' é o status final de sucesso para depósitos na BuyPix
+                const isSuccess = ['depix_sent', 'paid', 'confirmed', 'completed'].includes(status);
+                
+                // MAPEMANTO DE ERRO/EXPIRAÇÃO
+                const isFailure = ['expired', 'canceled', 'refunded', 'error'].includes(status);
+
+                if (isSuccess) {
                     saveLocalSale(amount, id);
                     triggerSuccess();
-                } 
-                // 2. Aguardando pagamento (Pendente)
-                else if (status === 'pending' || status === 'under_review') {
-                    console.log("Pagamento ainda pendente. Mantendo tela aberta...");
-                    // A tela continua no QR Code e o polling continua
-                } 
-                // 3. Tempo esgotado ou cancelado
-                else if (status === 'expired' || status === 'canceled' || status === 'refunded') {
-                    console.log("O tempo para pagamento expirou ou foi cancelado.");
+                } else if (isFailure) {
                     triggerError();
                 }
             }
         } catch (e) {
-            console.error("Erro ao verificar status:", e);
+            console.error("Erro no polling:", e);
         }
     }, 2000);
 }
@@ -136,22 +126,18 @@ function saveLocalSale(amount, id) {
 
 function triggerSuccess() {
     clearInterval(pollingInterval);
-    
-    // UI de Sucesso Máximo
-    document.body.style.backgroundColor = "#00c853"; // Verde Vibrante
+    document.body.style.backgroundColor = "#00c853"; 
     document.getElementById('main-screen').classList.add('hidden');
     document.getElementById('qr-container').classList.add('hidden');
     document.getElementById('screen-success').classList.remove('hidden');
     
-    // Som de Plin
     successSound.play().catch(e => console.log("Erro áudio:", e));
-    
     if (navigator.vibrate) navigator.vibrate([100, 30, 100]);
 }
 
 function triggerError() {
     clearInterval(pollingInterval);
-    document.body.style.backgroundColor = "#d50000"; // Vermelho
+    document.body.style.backgroundColor = "#d50000"; 
     document.getElementById('main-screen').classList.add('hidden');
     document.getElementById('qr-container').classList.add('hidden');
     document.getElementById('screen-error').classList.remove('hidden');
