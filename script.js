@@ -1,7 +1,7 @@
 let currentAmount = "";
 let pollingInterval = null;
 
-// Pré-carregamento do som
+// Pré-carregamento do som (Plin)
 const successSound = new Audio("https://www.soundjay.com/misc/sounds/cash-register-purchase-1.mp3");
 successSound.load();
 
@@ -58,6 +58,7 @@ async function generatePix() {
         return;
     }
 
+    // "Pede permissão" ao navegador para o som
     successSound.play().then(() => {
         successSound.pause();
         successSound.currentTime = 0;
@@ -131,7 +132,11 @@ function triggerSuccess() {
     document.getElementById('main-screen').classList.add('hidden');
     document.getElementById('qr-container').classList.add('hidden');
     document.getElementById('screen-success').classList.remove('hidden');
+    
+    // TOCA O SOM DE MOEDA
+    successSound.currentTime = 0;
     successSound.play().catch(e => console.log("Erro áudio:", e));
+    
     if (navigator.vibrate) navigator.vibrate([100, 30, 100]);
 }
 
@@ -178,8 +183,6 @@ async function createPaymentLink() {
             document.getElementById('link-result-area').classList.remove('hidden');
             document.getElementById('generated-link-url').innerText = url;
             
-            saveLocalSale(parseFloat(amount), result.data.id + "_LINK");
-
             document.getElementById('btn-share-link').onclick = () => {
                 const text = `💰 Pagamento Pix\nValor: R$ ${amount}\nReferente a: ${desc || 'Venda'}\nLink: ${url}\n\nClique no link, na página que abrir você verá o QR code e a opção Pix copiar e cola, favor enviar o comprovante após o pagamento obrigado`;
                 window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
@@ -198,7 +201,6 @@ async function fetchRecentSales() {
 
         let sales = [];
         if (result.success) {
-            // Suporta lista simples ou paginada
             sales = Array.isArray(result.data) ? result.data : (result.data.data || []);
         }
 
@@ -251,6 +253,6 @@ async function fetchRecentSales() {
 }
 
 function shareReceipt(id, amount, name) {
-    const text = `📄 Comprovante de Pagamento\n--------------------------\n✅ Status: Pago\n💰 Valor: R$ ${amount}\n👤 Pagador: ${name}\n🆔 Transação: ${id}\n--------------------------\nBuyPix Terminal`;
+    const text = `📄 Comprovante de Pagamento\n--------------------------\n✅ Status: Pago\n💰 Valor: R$ ${amount}\n👤 Pagador: ${name}\n🆔 Transação: ${id}\n--------------------------\nPix Freitas Terminal`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
 }
