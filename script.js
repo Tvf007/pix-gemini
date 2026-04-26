@@ -45,7 +45,7 @@ function resetTerminal() {
     document.getElementById('main-screen').classList.remove('hidden');
     document.getElementById('qr-container').classList.add('hidden');
     document.getElementById('keypad').classList.remove('hidden');
-    if(document.querySelector('.footer-actions')) document.querySelector('.footer-actions').classList.remove('hidden');
+    document.getElementById('footer-actions').classList.remove('hidden');
     
     document.getElementById('status-msg').innerText = "Insira o valor";
     updateDisplay();
@@ -53,8 +53,6 @@ function resetTerminal() {
 
 async function generatePix() {
     const amountValue = parseFloat(currentAmount) / 100;
-    
-    // NOVO VALOR MÍNIMO: R$ 50,00
     if (amountValue < 50.00) {
         alert("Valor mínimo R$ 50,00");
         return;
@@ -80,7 +78,7 @@ async function generatePix() {
             document.getElementById('qr-code').src = result.data.pix_qr_code_base64;
             document.getElementById('qr-container').classList.remove('hidden');
             document.getElementById('keypad').classList.add('hidden');
-            if(document.querySelector('.footer-actions')) document.querySelector('.footer-actions').classList.add('hidden');
+            document.getElementById('footer-actions').classList.add('hidden');
             document.getElementById('status-msg').innerText = "Aguardando pagamento...";
             startPolling(result.data.id, amountValue);
         } else {
@@ -103,8 +101,6 @@ function startPolling(id, amount) {
 
             if (result.success) {
                 const status = result.data.status.toLowerCase();
-                console.log("Status detectado:", status);
-
                 const isSuccess = ['depix_sent', 'paid', 'confirmed', 'completed'].includes(status);
                 const isFailure = ['expired', 'canceled', 'refunded', 'error'].includes(status);
 
@@ -135,7 +131,6 @@ function triggerSuccess() {
     document.getElementById('main-screen').classList.add('hidden');
     document.getElementById('qr-container').classList.add('hidden');
     document.getElementById('screen-success').classList.remove('hidden');
-    
     successSound.play().catch(e => console.log("Erro áudio:", e));
     if (navigator.vibrate) navigator.vibrate([100, 30, 100]);
 }
@@ -149,7 +144,11 @@ function triggerError() {
 }
 
 // Funções para Modais e Links de Pagamento
-function openLinkModal() { document.getElementById('modal-link').classList.remove('hidden'); }
+function openLinkModal() { 
+    document.getElementById('modal-link').classList.remove('hidden'); 
+    document.getElementById('link-input-area').classList.remove('hidden');
+    document.getElementById('link-result-area').classList.add('hidden');
+}
 function openCheckModal() { document.getElementById('modal-check').classList.remove('hidden'); }
 function closeModals() { 
     document.getElementById('modal-link').classList.add('hidden'); 
@@ -160,7 +159,6 @@ function closeModals() {
 async function createPaymentLink() {
     const amount = document.getElementById('link-amount').value;
     const desc = document.getElementById('link-desc').value;
-
     if (amount < 50) { alert("Valor mínimo R$ 50,00"); return; }
 
     try {
@@ -172,9 +170,14 @@ async function createPaymentLink() {
         const result = await response.json();
         if (result.success) {
             const url = result.data.checkout_url;
-            const text = `Pagamento Pix: R$ ${amount}\n${desc}\nLink: ${url}`;
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
-            closeModals();
+            document.getElementById('link-input-area').classList.add('hidden');
+            document.getElementById('link-result-area').classList.remove('hidden');
+            document.getElementById('generated-link-url').innerText = url;
+            
+            document.getElementById('btn-share-link').onclick = () => {
+                const text = `💰 Pagamento Pix\nValor: R$ ${amount}\nReferente a: ${desc || 'Venda'}\nLink: ${url}`;
+                window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+            };
         } else { alert(result.message); }
     } catch (e) { alert("Erro ao gerar link"); }
 }
@@ -191,12 +194,18 @@ async function checkReceipt() {
 
         if (result.success) {
             const d = result.data;
-            let html = `<b>Status:</b> ${d.status}<br>`;
+            const isPaid = ['depix_sent', 'paid', 'confirmed', 'completed'].includes(d.status.toLowerCase());
+            
+            let html = `<div style="text-align:center; font-weight:bold; font-size:18px; color:${isPaid ? '#00e676' : '#ffea00'}; margin-bottom:10px;">`;
+            html += isPaid ? 'PAGO ✅' : 'PENDENTE ⏳';
+            html += `</div>`;
+            html += `<b>ID:</b> <span style="font-size:10px;">${d.id}</span><br>`;
             html += `<b>Valor:</b> R$ ${d.amount.toFixed(2)}<br>`;
+            html += `<b>Data:</b> ${new Date(d.created_at).toLocaleString()}<br>`;
             if(d.payer_name) html += `<b>Pagador:</b> ${d.payer_name}<br>`;
             
-            if (d.status === 'depix_sent' || d.status === 'paid' || d.status === 'confirmed') {
-                html += `<button onclick="shareReceipt('${d.id}', '${d.amount}', '${d.payer_name || 'Cliente'}')" style="width:100%; margin-top:10px; background:#25d366; color:#fff; border:none; padding:8px; border-radius:5px;">Compartilhar Whats</button>`;
+            if (isPaid) {
+                html += `<button onclick="shareReceipt('${d.id}', '${d.amount}', '${d.payer_name || 'Cliente'}')" style="width:100%; margin-top:15px; background:#25d366; color:#fff; border:none; padding:12px; border-radius:8px; font-weight:bold;">Compartilhar Comprovante</button>`;
             }
             box.innerHTML = html;
         } else { box.innerHTML = "Transação não encontrada."; }
@@ -204,6 +213,6 @@ async function checkReceipt() {
 }
 
 function shareReceipt(id, amount, name) {
-    const text = `Comprovante de Pagamento Pix\nID: ${id}\nValor: R$ ${amount}\nPagador: ${name}\nStatus: Confirmado ✅`;
+    const text = `📄 Comprovante de Pagamento\n--------------------------\n✅ Status: Pago\n💰 Valor: R$ ${amount}\n👤 Pagador: ${name}\n🆔 Transação: ${id}\n--------------------------\nBuyPix Terminal`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
 }

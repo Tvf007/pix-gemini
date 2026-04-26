@@ -26,10 +26,19 @@
         <!-- Modal Link de Pagamento -->
         <div id="modal-link" class="modal hidden fade-in">
             <div class="modal-content">
-                <h3>Gerar Link de Pagamento</h3>
-                <input type="number" id="link-amount" placeholder="Valor (Ex: 50.00)" step="0.01">
-                <input type="text" id="link-desc" placeholder="Descrição (Opcional)">
-                <button class="btn-confirm" onclick="createPaymentLink()">Gerar e Compartilhar</button>
+                <h3>Link de Pagamento</h3>
+                <div id="link-input-area">
+                    <input type="number" id="link-amount" placeholder="Valor (R$)" step="0.01">
+                    <input type="text" id="link-desc" placeholder="Descrição da Venda">
+                    <button class="btn-confirm" onclick="createPaymentLink()">Gerar Link</button>
+                </div>
+                <div id="link-result-area" class="hidden">
+                    <div style="background: #000; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #00e676;">
+                        <p style="font-size: 14px; margin: 0; color: #888;">Link Gerado:</p>
+                        <p id="generated-link-url" style="word-break: break-all; font-size: 12px; color: #00e676; margin: 5px 0;"></p>
+                    </div>
+                    <button id="btn-share-link" class="btn-confirm" style="background: #25d366; color: #fff;">Compartilhar no WhatsApp</button>
+                </div>
                 <button class="btn-cancel" onclick="closeModals()">Fechar</button>
             </div>
         </div>
@@ -37,10 +46,10 @@
         <!-- Modal Verificar Comprovante -->
         <div id="modal-check" class="modal hidden fade-in">
             <div class="modal-content">
-                <h3>Verificar Comprovante</h3>
-                <input type="text" id="check-id" placeholder="ID da Transação">
-                <button class="btn-confirm" onclick="checkReceipt()">Verificar</button>
-                <div id="receipt-result" class="hidden" style="margin-top: 15px; text-align: left; font-size: 14px; background: #222; padding: 10px; border-radius: 5px;">
+                <h3>Comprovante de Venda</h3>
+                <input type="text" id="check-id" placeholder="Digite o ID da Transação">
+                <button class="btn-confirm" onclick="checkReceipt()">Consultar Status</button>
+                <div id="receipt-result" class="hidden" style="margin-top: 15px; text-align: left; padding: 15px; border-radius: 10px; border: 1px solid #333;">
                     <!-- Resultado aqui -->
                 </div>
                 <button class="btn-cancel" onclick="closeModals()">Fechar</button>
@@ -74,7 +83,7 @@
             <button class="btn-confirm" onclick="generatePix()">OK</button>
         </div>
 
-        <div class="footer-actions">
+        <div class="footer-actions" id="footer-actions">
             <button onclick="openLinkModal()">🔗 Gerar Link</button>
             <button onclick="openCheckModal()">🔍 Comprovante</button>
         </div>
