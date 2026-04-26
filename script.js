@@ -6,6 +6,11 @@ function getSuccessSound() {
     return document.getElementById('sound-success');
 }
 
+// Solicita permissão para notificações (para funcionar com tela bloqueada)
+if ("Notification" in window) {
+    Notification.requestPermission();
+}
+
 function updateDisplay() {
     const display = document.getElementById('display');
     if (currentAmount === "") {
@@ -59,10 +64,16 @@ async function generatePix() {
         return;
     }
 
-    // Inicializa o som no primeiro clique para desbloquear o navegador
+    // "Prepara" o som silenciosamente (Volume 0) para desbloquear o navegador
     const sound = getSuccessSound();
     if(sound) {
-        sound.play().then(() => { sound.pause(); sound.currentTime = 0; }).catch(() => {});
+        const originalVolume = sound.volume;
+        sound.volume = 0;
+        sound.play().then(() => {
+            sound.pause();
+            sound.currentTime = 0;
+            sound.volume = originalVolume;
+        }).catch(() => {});
     }
 
     document.getElementById('status-msg').innerText = "Gerando PIX...";
@@ -108,7 +119,7 @@ function startPolling(id, amount) {
 
                 if (isSuccess) {
                     saveLocalSale(amount, id);
-                    triggerSuccess();
+                    triggerSuccess(amount);
                 } else if (isFailure) {
                     triggerError();
                 }
@@ -127,18 +138,26 @@ function saveLocalSale(amount, id) {
     }
 }
 
-function triggerSuccess() {
+function triggerSuccess(amount) {
     clearInterval(pollingInterval);
     document.body.style.backgroundColor = "#00c853"; 
     document.getElementById('main-screen').classList.add('hidden');
     document.getElementById('qr-container').classList.add('hidden');
     document.getElementById('screen-success').classList.remove('hidden');
     
-    // TOCA O SOM DE CAIXA REGISTRADORA
+    // TOCA O SOM DE CAIXA REGISTRADORA (PLIN)
     const sound = getSuccessSound();
     if (sound) {
         sound.currentTime = 0;
         sound.play().catch(e => console.log("Erro áudio:", e));
+    }
+
+    // DISPARA NOTIFICAÇÃO (PARA TELA BLOQUEADA)
+    if (Notification.permission === "granted") {
+        new Notification("Pix Freitas: Pagamento Confirmado!", {
+            body: `Recebido: R$ ${amount.toFixed(2)}`,
+            icon: "icon.png"
+        });
     }
     
     if (navigator.vibrate) navigator.vibrate([100, 30, 100]);
@@ -191,8 +210,8 @@ async function createPaymentLink() {
                 const text = `💰 Pagamento Pix\nValor: R$ ${amount}\nReferente a: ${desc || 'Venda'}\nLink: ${url}\n\nClique no link, na página que abrir você verá o QR code e a opção Pix copiar e cola, favor enviar o comprovante após o pagamento obrigado`;
                 window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
                 
-                // Inicia o monitoramento dessa venda via link em segundo plano para tocar o som se pagar enquanto o app tá aberto
-                startPolling(result.data.id, amount);
+                // Monitoramento em segundo plano para o Link
+                startPolling(result.data.id, parseFloat(amount));
             };
         } else { alert(result.message); }
     } catch (e) { alert("Erro ao gerar link"); }
@@ -221,11 +240,11 @@ async function fetchRecentSales() {
                 
                 const item = document.createElement('div');
                 item.className = "receipt-item";
-                item.style.cssText = "background: #222; padding: 15px; border-radius: 10px; margin-bottom: 12px; cursor: pointer; border-left: 6px solid " + color + "; transition: 0.2s;";
+                item.style.cssText = "background: #222; padding: 12px; border-radius: 10px; margin-bottom: 12px; cursor: pointer; border-left: 6px solid " + color + "; transition: 0.2s;";
                 
                 item.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-weight:bold; font-size:18px;">R$ ${sale.amount.toFixed(2)}</span>
+                        <span style="font-weight:bold; font-size:16px;">R$ ${sale.amount.toFixed(2)}</span>
                         <span style="color:${color}; font-size:13px; font-weight:bold;">${isPaid ? 'CONCLUÍDO ✅' : 'PENDENTE ⏳'}</span>
                     </div>
                     <div style="font-size:12px; color:#888; margin-top:8px;">
