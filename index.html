@@ -45,14 +45,12 @@
 
         <!-- Modal Verificar Comprovante -->
         <div id="modal-check" class="modal hidden fade-in">
-            <div class="modal-content">
-                <h3>Comprovante de Venda</h3>
-                <input type="text" id="check-id" placeholder="Digite o ID da Transação">
-                <button class="btn-confirm" onclick="checkReceipt()">Consultar Status</button>
-                <div id="receipt-result" class="hidden" style="margin-top: 15px; text-align: left; padding: 15px; border-radius: 10px; border: 1px solid #333;">
-                    <!-- Resultado aqui -->
+            <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+                <h3>Vendas Recentes</h3>
+                <div id="receipt-list" style="margin-top: 10px;">
+                    <p style="color: #888;">Carregando vendas...</p>
                 </div>
-                <button class="btn-cancel" onclick="closeModals()">Fechar</button>
+                <button class="btn-cancel" style="margin-top: 15px;" onclick="closeModals()">Fechar</button>
             </div>
         </div>
 

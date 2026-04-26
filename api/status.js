@@ -1,26 +1,25 @@
 export default async function handler(req, res) {
   const { id } = req.query;
-
-  if (!id) {
-    return res.status(400).json({ success: false, message: 'ID do depósito é obrigatório' });
-  }
+  const apiKey = 'bpx_LSKftVvEGaVzlH5yR2BXX17mahh2PEdHG3GV75dl';
 
   try {
-    const response = await fetch(`https://buypix.me/api/v1/deposits/${id}`, {
+    let url = 'https://buypix.me/api/v1/deposits';
+    if (id) {
+      url += `/${id}`;
+    } else {
+      url += '?per_page=10'; // Busca as 10 últimas se não houver ID
+    }
+
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'Authorization': 'Bearer bpx_LSKftVvEGaVzlH5yR2BXX17mahh2PEdHG3GV75dl'
+        'Authorization': `Bearer ${apiKey}`
       }
     });
 
-    const result = await response.json();
-    
-    // Log para debug no painel da Vercel
-    console.log(`[POLLING DEBUG] ID: ${id} | Status retornado: ${result.data?.status}`);
-    
-    return res.status(response.status).json(result);
+    const data = await response.json();
+    return res.status(response.status).json(data);
   } catch (error) {
-    console.error('[POLLING ERROR]:', error);
     return res.status(500).json({ success: false, message: error.message });
   }
 }

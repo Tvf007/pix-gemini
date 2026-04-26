@@ -45,7 +45,7 @@ function resetTerminal() {
     document.getElementById('main-screen').classList.remove('hidden');
     document.getElementById('qr-container').classList.add('hidden');
     document.getElementById('keypad').classList.remove('hidden');
-    document.getElementById('footer-actions').classList.remove('hidden');
+    if(document.getElementById('footer-actions')) document.getElementById('footer-actions').classList.remove('hidden');
     
     document.getElementById('status-msg').innerText = "Insira o valor";
     updateDisplay();
@@ -149,11 +149,15 @@ function openLinkModal() {
     document.getElementById('link-input-area').classList.remove('hidden');
     document.getElementById('link-result-area').classList.add('hidden');
 }
-function openCheckModal() { document.getElementById('modal-check').classList.remove('hidden'); }
+
+function openCheckModal() { 
+    document.getElementById('modal-check').classList.remove('hidden'); 
+    fetchRecentSales();
+}
+
 function closeModals() { 
     document.getElementById('modal-link').classList.add('hidden'); 
     document.getElementById('modal-check').classList.add('hidden'); 
-    document.getElementById('receipt-result').classList.add('hidden');
 }
 
 async function createPaymentLink() {
@@ -175,41 +179,52 @@ async function createPaymentLink() {
             document.getElementById('generated-link-url').innerText = url;
             
             document.getElementById('btn-share-link').onclick = () => {
-                const text = `💰 Pagamento Pix\nValor: R$ ${amount}\nReferente a: ${desc || 'Venda'}\nLink: ${url}`;
+                const text = `💰 Pagamento Pix\nValor: R$ ${amount}\nReferente a: ${desc || 'Venda'}\nLink: ${url}\n\nClique no link, na página que abrir você verá o QR code e a opção Pix copiar e cola, favor enviar o comprovante após o pagamento obrigado`;
                 window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
             };
         } else { alert(result.message); }
     } catch (e) { alert("Erro ao gerar link"); }
 }
 
-async function checkReceipt() {
-    const id = document.getElementById('check-id').value;
-    if (!id) return;
+async function fetchRecentSales() {
+    const list = document.getElementById('receipt-list');
+    list.innerHTML = '<p style="color: #888;">Buscando vendas recentes...</p>';
 
     try {
-        const response = await fetch(`/api/payment-links?id=${id}`);
+        const response = await fetch('/api/status');
         const result = await response.json();
-        const box = document.getElementById('receipt-result');
-        box.classList.remove('hidden');
 
-        if (result.success) {
-            const d = result.data;
-            const isPaid = ['depix_sent', 'paid', 'confirmed', 'completed'].includes(d.status.toLowerCase());
-            
-            let html = `<div style="text-align:center; font-weight:bold; font-size:18px; color:${isPaid ? '#00e676' : '#ffea00'}; margin-bottom:10px;">`;
-            html += isPaid ? 'PAGO ✅' : 'PENDENTE ⏳';
-            html += `</div>`;
-            html += `<b>ID:</b> <span style="font-size:10px;">${d.id}</span><br>`;
-            html += `<b>Valor:</b> R$ ${d.amount.toFixed(2)}<br>`;
-            html += `<b>Data:</b> ${new Date(d.created_at).toLocaleString()}<br>`;
-            if(d.payer_name) html += `<b>Pagador:</b> ${d.payer_name}<br>`;
-            
-            if (isPaid) {
-                html += `<button onclick="shareReceipt('${d.id}', '${d.amount}', '${d.payer_name || 'Cliente'}')" style="width:100%; margin-top:15px; background:#25d366; color:#fff; border:none; padding:12px; border-radius:8px; font-weight:bold;">Compartilhar Comprovante</button>`;
-            }
-            box.innerHTML = html;
-        } else { box.innerHTML = "Transação não encontrada."; }
-    } catch (e) { alert("Erro ao verificar"); }
+        if (result.success && result.data.length > 0) {
+            list.innerHTML = '';
+            result.data.forEach(sale => {
+                const isPaid = ['depix_sent', 'paid', 'confirmed', 'completed'].includes(sale.status.toLowerCase());
+                const color = isPaid ? '#00e676' : '#ffea00';
+                
+                const item = document.createElement('div');
+                item.style.cssText = "background: #222; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 5px solid " + color;
+                
+                let html = `<div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight:bold; font-size:16px;">R$ ${sale.amount.toFixed(2)}</span>
+                    <span style="color:${color}; font-size:12px; font-weight:bold;">${isPaid ? 'PAGO ✅' : 'PENDENTE'}</span>
+                </div>
+                <div style="font-size:11px; color:#888; margin-top:5px;">
+                    Data: ${new Date(sale.created_at).toLocaleString()}<br>
+                    ${sale.payer_name ? 'Pagador: ' + sale.payer_name : 'ID: ' + sale.id.substring(0,8)}
+                </div>`;
+
+                if (isPaid) {
+                    html += `<button onclick="shareReceipt('${sale.id}', '${sale.amount}', '${sale.payer_name || 'Cliente'}')" style="width:100%; margin-top:10px; background:#25d366; color:#fff; border:none; padding:8px; border-radius:5px; font-size:12px; font-weight:bold;">Compartilhar Comprovante</button>`;
+                }
+                
+                item.innerHTML = html;
+                list.appendChild(item);
+            });
+        } else {
+            list.innerHTML = '<p style="color: #888;">Nenhuma venda encontrada recentemente.</p>';
+        }
+    } catch (e) {
+        list.innerHTML = '<p style="color: #ff5252;">Erro ao carregar vendas.</p>';
+    }
 }
 
 function shareReceipt(id, amount, name) {
