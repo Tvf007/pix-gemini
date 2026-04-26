@@ -3,35 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BuyPix - Relatório Local</title>
+    <title>BuyPix - Relatório de Vendas</title>
     <style>
         body { background: #121212; color: white; font-family: sans-serif; padding: 20px; touch-action: manipulation; }
-        .card { background: #1e1e1e; padding: 20px; border-radius: 15px; max-width: 600px; margin: auto; }
-        h1 { color: #00e676; text-align: center; }
-        .stat-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin: 20px 0; }
-        .stat-item { background: #222; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #333; }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 15px; max-width: 600px; margin: auto; border: 1px solid #333; }
+        h1 { color: #00e676; text-align: center; margin-bottom: 10px; }
+        .date-label { text-align: center; color: #888; font-size: 14px; margin-bottom: 20px; }
+        
+        .stat-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-item { background: #222; padding: 25px; border-radius: 12px; text-align: center; border-bottom: 4px solid #00e676; }
         .stat-label { font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
-        .stat-value { font-size: 32px; font-weight: bold; color: #00e676; margin-top: 10px; }
-        .back { display: block; margin-top: 30px; color: #888; text-decoration: none; text-align: center; font-size: 14px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+        .stat-value { font-size: 36px; font-weight: bold; color: #00e676; margin-top: 10px; }
+
+        h3 { border-bottom: 1px solid #333; padding-bottom: 10px; color: #00e676; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
         th, td { text-align: left; padding: 12px; border-bottom: 1px solid #333; }
-        th { color: #888; font-weight: normal; text-transform: uppercase; font-size: 12px; }
-        .status-tag { background: #1b5e20; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 11px; }
+        th { color: #888; font-weight: normal; text-transform: uppercase; font-size: 11px; }
+        
+        .status-paid { color: #00e676; font-weight: bold; }
+        .status-pending { color: #ffea00; }
+        
+        .btn-refresh { width: 100%; background: #333; color: #fff; border: 1px solid #444; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 20px; }
+        .back { display: block; margin-top: 30px; color: #888; text-decoration: none; text-align: center; font-size: 14px; }
+        
+        .no-sales { text-align: center; color: #666; padding: 30px; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>Vendas de Hoje</h1>
+        <h1>Faturamento Diário</h1>
+        <div class="date-label" id="current-date">--/--/----</div>
         
+        <button class="btn-refresh" onclick="loadRealtimeReport()">🔄 Atualizar Relatório</button>
+
         <div class="stat-grid">
             <div class="stat-item">
-                <div class="stat-label">Total Local (Bruto)</div>
-                <div class="stat-value" id="local-total">R$ 0,00</div>
+                <div class="stat-label">Total Recebido (Hoje)</div>
+                <div class="stat-value" id="total-day">R$ 0,00</div>
             </div>
         </div>
 
-        <h3>Vendas Recentes</h3>
-        <table id="local-sales-table">
+        <h3>Lista de Vendas</h3>
+        <table id="sales-table">
             <thead>
                 <tr>
                     <th>Hora</th>
@@ -39,47 +53,70 @@
                     <th>Status</th>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody>
+                <!-- Preenchido via API -->
+            </tbody>
         </table>
+        
+        <div id="no-sales-msg" class="no-sales hidden">Nenhuma venda realizada hoje.</div>
 
-        <button onclick="clearLocalData()" style="width: 100%; margin-top: 30px; background: #333; color: #aaa; border: none; padding: 12px; border-radius: 8px; font-size: 14px; cursor: pointer;">Limpar Histórico Local</button>
         <a href="index.html" class="back">← Voltar para a Máquina</a>
     </div>
 
     <script>
-        function loadReport() {
-            const localSales = JSON.parse(localStorage.getItem('pending_sales') || '[]');
-            const tbody = document.querySelector('#local-sales-table tbody');
-            let localTotal = 0;
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR');
 
-            tbody.innerHTML = ''; // Limpa antes de carregar
+        async function loadRealtimeReport() {
+            const tbody = document.querySelector('#sales-table tbody');
+            const totalDisplay = document.getElementById('total-day');
+            const noSalesMsg = document.getElementById('no-sales-msg');
             
-            localSales.reverse().forEach(sale => {
-                const row = `<tr>
-                    <td>${new Date(sale.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
-                    <td>R$ ${sale.amount.toFixed(2)}</td>
-                    <td><span class="status-tag">CONFIRMADO</span></td>
-                </tr>`;
-                tbody.innerHTML += row;
-                localTotal += sale.amount;
-            });
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#888;">Carregando dados...</td></tr>';
             
-            document.getElementById('local-total').innerText = `R$ ${localTotal.toFixed(2).replace('.', ',')}`;
-        }
+            try {
+                // Busca todas as vendas de hoje via API
+                const response = await fetch('/api/status');
+                const result = await response.json();
 
-        function clearLocalData() {
-            const password = prompt("Digite a senha para limpar o histórico:");
-            if (password === "2201") {
-                if(confirm("Deseja apagar o histórico de vendas local?")) {
-                    localStorage.removeItem('pending_sales');
-                    loadReport();
+                let sales = [];
+                if (result.success) {
+                    sales = Array.isArray(result.data) ? result.data : (result.data.data || []);
                 }
-            } else {
-                alert("Senha incorreta!");
+
+                tbody.innerHTML = '';
+                let totalConfirmed = 0;
+
+                if (sales.length > 0) {
+                    noSalesMsg.classList.add('hidden');
+                    
+                    sales.forEach(sale => {
+                        const isPaid = ['depix_sent', 'paid', 'confirmed', 'completed'].includes(sale.status.toLowerCase());
+                        const hour = new Date(sale.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        
+                        if (isPaid) totalConfirmed += sale.amount;
+
+                        const row = `<tr>
+                            <td>${hour}</td>
+                            <td>R$ ${sale.amount.toFixed(2).replace('.', ',')}</td>
+                            <td class="${isPaid ? 'status-paid' : 'status-pending'}">
+                                ${isPaid ? 'CONCLUÍDO' : 'PENDENTE'}
+                            </td>
+                        </tr>`;
+                        tbody.innerHTML += row;
+                    });
+                } else {
+                    noSalesMsg.classList.remove('hidden');
+                }
+
+                totalDisplay.innerText = `R$ ${totalConfirmed.toFixed(2).replace('.', ',')}`;
+
+            } catch (e) {
+                console.error("Erro no relatório:", e);
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:red;">Erro ao conectar com a API.</td></tr>';
             }
         }
-        
-        loadReport();
+
+        loadRealtimeReport();
     </script>
 </body>
 </html>
