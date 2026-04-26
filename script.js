@@ -1,9 +1,10 @@
 let currentAmount = "";
 let pollingInterval = null;
 
-// Pré-carregamento do som (Plin)
-const successSound = new Audio("https://www.soundjay.com/misc/sounds/cash-register-purchase-1.mp3");
-successSound.load();
+// Referência ao elemento de áudio do HTML
+function getSuccessSound() {
+    return document.getElementById('sound-success');
+}
 
 function updateDisplay() {
     const display = document.getElementById('display');
@@ -58,11 +59,11 @@ async function generatePix() {
         return;
     }
 
-    // "Pede permissão" ao navegador para o som
-    successSound.play().then(() => {
-        successSound.pause();
-        successSound.currentTime = 0;
-    }).catch(() => {});
+    // Inicializa o som no primeiro clique para desbloquear o navegador
+    const sound = getSuccessSound();
+    if(sound) {
+        sound.play().then(() => { sound.pause(); sound.currentTime = 0; }).catch(() => {});
+    }
 
     document.getElementById('status-msg').innerText = "Gerando PIX...";
     
@@ -133,9 +134,12 @@ function triggerSuccess() {
     document.getElementById('qr-container').classList.add('hidden');
     document.getElementById('screen-success').classList.remove('hidden');
     
-    // TOCA O SOM DE MOEDA
-    successSound.currentTime = 0;
-    successSound.play().catch(e => console.log("Erro áudio:", e));
+    // TOCA O SOM DE CAIXA REGISTRADORA
+    const sound = getSuccessSound();
+    if (sound) {
+        sound.currentTime = 0;
+        sound.play().catch(e => console.log("Erro áudio:", e));
+    }
     
     if (navigator.vibrate) navigator.vibrate([100, 30, 100]);
 }
@@ -186,6 +190,9 @@ async function createPaymentLink() {
             document.getElementById('btn-share-link').onclick = () => {
                 const text = `💰 Pagamento Pix\nValor: R$ ${amount}\nReferente a: ${desc || 'Venda'}\nLink: ${url}\n\nClique no link, na página que abrir você verá o QR code e a opção Pix copiar e cola, favor enviar o comprovante após o pagamento obrigado`;
                 window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+                
+                // Inicia o monitoramento dessa venda via link em segundo plano para tocar o som se pagar enquanto o app tá aberto
+                startPolling(result.data.id, amount);
             };
         } else { alert(result.message); }
     } catch (e) { alert("Erro ao gerar link"); }
