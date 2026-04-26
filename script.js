@@ -6,7 +6,7 @@ function getSuccessSound() {
     return document.getElementById('sound-success');
 }
 
-// Função para solicitar permissão de notificação (precisa de clique do usuário)
+// Função para solicitar permissão de notificação
 async function requestNotificationPermission() {
     if ("Notification" in window && Notification.permission !== "granted") {
         await Notification.requestPermission();
@@ -66,16 +66,11 @@ async function generatePix() {
         return;
     }
 
-    // Solicita permissão e prepara o áudio de forma TOTALMENTE muda (muted)
+    // Solicita permissão e apenas "prepara" o arquivo sem tocar nada
     requestNotificationPermission();
     const sound = getSuccessSound();
     if(sound) {
-        sound.muted = true; // Garante silêncio total
-        sound.play().then(() => {
-            sound.pause();
-            sound.currentTime = 0;
-            sound.muted = false; // Deixa pronto para o sucesso
-        }).catch(() => {});
+        sound.load(); // Apenas carrega o áudio, não toca
     }
 
     document.getElementById('status-msg').innerText = "Gerando PIX...";
@@ -147,10 +142,9 @@ function triggerSuccess(amount) {
     document.getElementById('qr-container').classList.add('hidden');
     document.getElementById('screen-success').classList.remove('hidden');
     
-    // SÓ TOCA O SOM AQUI (A HORA QUE FICA VERDE)
+    // O SOM SÓ É EXECUTADO AQUI - NA CONCLUSÃO
     const sound = getSuccessSound();
     if (sound) {
-        sound.muted = false;
         sound.currentTime = 0;
         sound.play().catch(e => console.log("Erro áudio:", e));
     }
@@ -176,14 +170,14 @@ function triggerError() {
 
 // Funções para Modais e Links de Pagamento
 function openLinkModal() { 
-    requestNotificationPermission(); // Pede permissão ao clicar no botão
+    requestNotificationPermission(); 
     document.getElementById('modal-link').classList.remove('hidden'); 
     document.getElementById('link-input-area').classList.remove('hidden');
     document.getElementById('link-result-area').classList.add('hidden');
 }
 
 function openCheckModal() { 
-    requestNotificationPermission(); // Pede permissão ao clicar no botão
+    requestNotificationPermission(); 
     document.getElementById('modal-check').classList.remove('hidden'); 
     fetchRecentSales();
 }
@@ -198,12 +192,8 @@ async function createPaymentLink() {
     const desc = document.getElementById('link-desc').value;
     if (amount < 50) { alert("Valor mínimo R$ 50,00"); return; }
 
-    // Prepara áudio para o link também
     const sound = getSuccessSound();
-    if(sound) {
-        sound.muted = true;
-        sound.play().then(() => { sound.pause(); sound.currentTime = 0; sound.muted = false; }).catch(() => {});
-    }
+    if(sound) sound.load();
 
     try {
         const response = await fetch('/api/payment-links', {
