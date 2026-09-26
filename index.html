@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#00e676">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="icon" type="image/png" href="icon.png">
+    <title>Pix Freitas - Terminal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <audio id="sound-success" src="success.mp3" preload="auto"></audio>
+    
+    <div class="terminal" id="terminal">
+        <!-- Tela de Sucesso -->
+        <div id="screen-success" class="success-screen hidden fade-in">
+            <div class="status-icon">✅</div>
+            <div class="status-text">Pagamento Recebido</div>
+            <button class="btn-confirm" style="margin-top: 30px; width: 80%; color: #000; border: 2px solid #000;" onclick="resetTerminal()">Nova Venda</button>
+        </div>
+
+        <!-- Tela de Erro -->
+        <div id="screen-error" class="error-screen hidden fade-in">
+            <div class="status-icon">❌</div>
+            <div class="status-text">Pagamento não realizado</div>
+            <button class="btn-confirm" style="margin-top: 30px; width: 80%; background: #000; color: #fff;" onclick="resetTerminal()">Tentar Novamente</button>
+        </div>
+
+        <!-- Modal Link de Pagamento -->
+        <div id="modal-link" class="modal hidden fade-in">
+            <div class="modal-content">
+                <h3>Link de Pagamento</h3>
+                <div id="link-input-area">
+                    <input type="number" id="link-amount" placeholder="Valor (R$)" step="0.01">
+                    <input type="text" id="link-desc" placeholder="Descrição da Venda">
+                    <button class="btn-confirm" onclick="createPaymentLink()">Gerar Link</button>
+                </div>
+                <div id="link-result-area" class="hidden">
+                    <div style="background: #000; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #00e676;">
+                        <p style="font-size: 14px; margin: 0; color: #888;">Link Gerado:</p>
+                        <p id="generated-link-url" style="word-break: break-all; font-size: 12px; color: #00e676; margin: 5px 0;"></p>
+                    </div>
+                    <button id="btn-share-link" class="btn-confirm" style="background: #25d366; color: #fff;">Compartilhar no WhatsApp</button>
+                </div>
+                <button class="btn-cancel" onclick="closeModals()">Fechar</button>
+            </div>
+        </div>
+
+        <!-- Modal Verificar Comprovante -->
+        <div id="modal-check" class="modal hidden fade-in">
+            <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+                <h3>Vendas Recentes</h3>
+                <div id="receipt-list" style="margin-top: 10px;">
+                    <p style="color: #888;">Carregando vendas...</p>
+                </div>
+                <button class="btn-cancel" style="margin-top: 15px;" onclick="closeModals()">Fechar</button>
+            </div>
+        </div>
+
+        <div class="screen" id="main-screen">
+            <div class="brand">Pix Freitas Terminal</div>
+            <div class="display" id="display">R$ 0,00</div>
+            <div class="status-msg" id="status-msg">Digite o valor e pressione OK</div>
+        </div>
+
+        <div id="qr-container" class="hidden">
+            <img id="qr-code" src="" alt="QR Code PIX">
+            <p>Escaneie para pagar</p>
+            <button class="btn-cancel" onclick="cancelarVenda()">Cancelar Venda</button>
+        </div>
+
+        <div id="link-action-container" class="hidden" style="margin: 20px 0; padding: 20px; background: #1e1e1e; border-radius: 12px; border: 1px solid #333;">
+            <p style="color: #00e676; margin-bottom: 20px; font-weight: bold; font-size: 18px;">Link gerado com sucesso!</p>
+            <button id="btn-native-share" onclick="shareGeneratedLink()" style="background: #2196F3; color: white; width: 100%; margin-bottom: 15px; font-weight: bold; padding: 15px; border-radius: 8px;">📤 Compartilhar Link</button>
+            <button id="btn-open-link" onclick="openGeneratedLink()" style="background: #00e676; color: black; width: 100%; margin-bottom: 15px; font-weight: bold; padding: 15px; border-radius: 8px;">🔗 Abrir Link</button>
+            <button class="btn-cancel" onclick="cancelarVenda()" style="margin-top: 5px;">Cancelar Venda</button>
+        </div>
+
+        <div class="keypad" id="keypad">
+            <button onclick="addNumber(1)">1</button>
+            <button onclick="addNumber(2)">2</button>
+            <button onclick="addNumber(3)">3</button>
+            <button onclick="addNumber(4)">4</button>
+            <button onclick="addNumber(5)">5</button>
+            <button onclick="addNumber(6)">6</button>
+            <button onclick="addNumber(7)">7</button>
+            <button onclick="addNumber(8)">8</button>
+            <button onclick="addNumber(9)">9</button>
+            <button class="btn-clear" onclick="clearDisplay()">✕ C</button>
+            <button onclick="addNumber(0)">0</button>
+            <button class="btn-confirm" onclick="generateLinkAction()">✓ OK</button>
+        </div>
+
+        <div class="footer-actions" id="footer-actions">
+            <button onclick="openLinkModal()">🔗 Gerar Link</button>
+            <button onclick="openCheckModal()">🔍 Comprovante</button>
+        </div>
+
+        <div class="footer">
+            <a href="relatorio.html">Relatório de Vendas</a>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

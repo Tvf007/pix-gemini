@@ -1,0 +1,306 @@
+:root {
+    --bg-color: #121212;
+    --surface-color: #1e1e1e;
+    --primary-color: #00e676;
+    --text-color: #ffffff;
+    --error-color: #ff5252;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Telas de Status */
+.success-screen {
+    background: #00e676 !important;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 20px;
+    z-index: 10;
+}
+
+.error-screen {
+    background: #ff5252 !important;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 20px;
+    z-index: 10;
+}
+
+.status-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+}
+
+.status-text {
+    font-size: 24px;
+    font-weight: bold;
+    color: #000;
+    text-transform: uppercase;
+}
+
+.terminal {
+    position: relative;
+    background: var(--surface-color);
+...
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    width: 320px;
+    text-align: center;
+    transition: all 0.3s ease-in-out;
+}
+
+.screen {
+    background: #000;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 2px solid #333;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.screen::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120px;
+    height: 120px;
+    background: url('icon.png') center/contain no-repeat;
+    opacity: 0.08;
+    pointer-events: none;
+}
+
+.brand {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 1;
+}
+
+.display {
+    font-size: 32px;
+    font-weight: bold;
+    color: #39ff14;
+    text-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
+    min-height: 40px;
+    position: relative;
+    z-index: 1;
+}
+
+.status-msg {
+    font-size: 18px;
+    margin-top: 10px;
+    color: #aaa;
+    font-weight: 500;
+    position: relative;
+    z-index: 1;
+}
+
+.keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+button {
+    background: #333;
+    border: none;
+    color: white;
+    padding: 20px;
+    font-size: 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.1s;
+    touch-action: manipulation;
+}
+
+button:active {
+    transform: scale(0.95);
+    background: #444;
+}
+
+.btn-confirm {
+    background: var(--primary-color);
+    color: #000;
+    font-weight: bold;
+}
+
+.btn-clear {
+    background: var(--error-color);
+}
+
+/* Estilo Maquininha POS (Apenas Teclado) */
+.keypad button {
+    background: linear-gradient(180deg, #444, #2a2a2a);
+    border-radius: 12px;
+    box-shadow: 0 5px 0 #111, 0 8px 10px rgba(0,0,0,0.5);
+    position: relative;
+}
+
+.keypad button:active {
+    transform: translateY(5px);
+    box-shadow: 0 0px 0 #111, 0 3px 5px rgba(0,0,0,0.5);
+    background: linear-gradient(180deg, #333, #222);
+}
+
+.keypad .btn-confirm {
+    background: linear-gradient(180deg, #00e676, #00b35c);
+    box-shadow: 0 5px 0 #008042, 0 8px 10px rgba(0,0,0,0.5);
+}
+.keypad .btn-confirm:active {
+    background: linear-gradient(180deg, #00cc69, #00994d);
+    box-shadow: 0 0px 0 #008042, 0 3px 5px rgba(0,0,0,0.5);
+}
+
+.keypad .btn-clear {
+    background: linear-gradient(180deg, #ff5252, #d32f2f);
+    box-shadow: 0 5px 0 #b71c1c, 0 8px 10px rgba(0,0,0,0.5);
+}
+.keypad .btn-clear:active {
+    background: linear-gradient(180deg, #e53935, #c62828);
+    box-shadow: 0 0px 0 #b71c1c, 0 3px 5px rgba(0,0,0,0.5);
+}
+
+#qr-container {
+    margin: 20px 0;
+}
+
+#qr-code {
+    width: 200px;
+    height: 200px;
+    background: white;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.btn-cancel {
+    background: transparent;
+    border: 1px solid #ff5252;
+    color: #ff5252;
+    padding: 10px 20px;
+    margin-top: 15px;
+    font-size: 14px;
+    width: 100%;
+}
+
+.btn-cancel:active {
+    background: rgba(255, 82, 82, 0.1);
+}
+
+.footer-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.footer-actions button {
+    font-size: 12px;
+    padding: 12px;
+    background: #222;
+    border: 1px solid #333;
+}
+
+/* Modais */
+.modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 20px;
+}
+
+.modal-content {
+    background: #1e1e1e;
+    padding: 20px;
+    width: 90%;
+    border-radius: 15px;
+    border: 1px solid #333;
+}
+
+.modal-content input {
+    width: 100%;
+    background: #000;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Status Classes */
+.pago {
+    background: #00c853 !important;
+}
+
+.pago .screen {
+    background: transparent;
+    border-color: #fff;
+}
+
+.pago .display, .pago .status-msg, .pago .brand {
+    color: #fff !important;
+}
+
+.negado {
+    background: #d50000 !important;
+}
+
+.footer {
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+}

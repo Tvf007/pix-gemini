@@ -1,0 +1,16 @@
+{
+  "name": "Pix Freitas",
+  "short_name": "Pix Freitas",
+  "description": "Terminal de Vendas Pix Freitas",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#00e676",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
