@@ -248,18 +248,37 @@ button:active {
     background: rgba(255, 82, 82, 0.1);
 }
 
-.footer-actions {
+.bottom-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
     margin-top: 15px;
+    width: 100%;
 }
 
-.footer-actions button {
-    font-size: 12px;
-    padding: 12px;
-    background: #222;
-    border: 1px solid #333;
+.bottom-btn {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 14px 8px;
+    background: #2d2d2d;
+    border: 1px solid #3a3a3a;
+    border-radius: 12px;
+    color: #ccc;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    box-shadow: 0 3px 0 #111;
+}
+
+.bottom-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 0px 0 #111;
+    background: #383838;
+    color: #fff;
 }
 
 /* Modais */
@@ -318,12 +337,3 @@ button:active {
     background: #d50000 !important;
 }
 
-.footer {
-    margin-top: 20px;
-    font-size: 14px;
-}
-
-.footer a {
-    color: var(--primary-color);
-    text-decoration: none;
-}
