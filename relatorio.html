@@ -28,6 +28,11 @@
         .back { display: block; margin-top: 30px; color: #888; text-decoration: none; text-align: center; font-size: 14px; }
         
         .no-sales { text-align: center; color: #666; padding: 30px; }
+
+        .filter-container { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; justify-content: space-between; }
+        .filter-btn { flex: 1; min-width: 70px; padding: 10px 5px; background: #333; border: 1px solid #555; color: white; border-radius: 8px; cursor: pointer; font-size: 12px; }
+        .filter-btn.active { background: #00e676; color: black; border-color: #00e676; font-weight: bold; }
+        #date-picker { padding: 8px; background: #333; color: white; border: 1px solid #555; border-radius: 8px; flex: 1; min-width: 120px; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -35,6 +40,13 @@
         <h1>Faturamento Diário</h1>
         <div class="date-label" id="current-date">--/--/----</div>
         
+        <div class="filter-container">
+            <button class="filter-btn active" id="btn-today" onclick="setFilter('today')">Hoje</button>
+            <button class="filter-btn" id="btn-week" onclick="setFilter('week')">Semana</button>
+            <button class="filter-btn" id="btn-month" onclick="setFilter('month')">Mês</button>
+            <input type="date" id="date-picker" onchange="setFilter('custom')">
+        </div>
+
         <button class="btn-refresh" onclick="loadRealtimeReport()">🔄 Atualizar Relatório</button>
 
         <div class="stat-grid">
@@ -66,6 +78,41 @@
     <script>
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR');
 
+        let currentFilter = { date_from: '', date_to: '' };
+
+        function setFilter(type) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            const today = new Date();
+            let from = ''; let to = '';
+
+            if (type === 'today') {
+                document.getElementById('btn-today').classList.add('active');
+                from = today.toISOString().split('T')[0];
+                to = from;
+            } else if (type === 'week') {
+                document.getElementById('btn-week').classList.add('active');
+                const firstDay = new Date(today.setDate(today.getDate() - today.getDay()));
+                from = firstDay.toISOString().split('T')[0];
+                to = new Date().toISOString().split('T')[0];
+            } else if (type === 'month') {
+                document.getElementById('btn-month').classList.add('active');
+                from = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+                to = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+            } else if (type === 'custom') {
+                from = document.getElementById('date-picker').value;
+                to = from;
+            }
+
+            if (from) {
+                currentFilter.date_from = from;
+                currentFilter.date_to = to;
+                let dateStr = from.split('-').reverse().join('/');
+                if (from !== to) dateStr += ' a ' + to.split('-').reverse().join('/');
+                document.getElementById('current-date').innerText = dateStr;
+                loadRealtimeReport();
+            }
+        }
+
         async function loadRealtimeReport() {
             const tbody = document.querySelector('#sales-table tbody');
             const totalDisplay = document.getElementById('total-day');
@@ -74,8 +121,13 @@
             tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#888;">Carregando dados...</td></tr>';
             
             try {
-                // Busca todas as vendas de hoje via API
-                const response = await fetch('/api/status');
+                let url = '/api/status';
+                const query = [];
+                if (currentFilter.date_from) query.push('date_from=' + currentFilter.date_from);
+                if (currentFilter.date_to) query.push('date_to=' + currentFilter.date_to);
+                if (query.length > 0) url += '?' + query.join('&');
+
+                const response = await fetch(url);
                 const result = await response.json();
 
                 let sales = [];
@@ -116,7 +168,8 @@
             }
         }
 
-        loadRealtimeReport();
+        // Inicializa com o filtro de hoje
+        setFilter('today');
     </script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  const { id } = req.query;
+  const { id, date_from, date_to } = req.query;
   const apiKey = 'bpx_LSKftVvEGaVzlH5yR2BXX17mahh2PEdHG3GV75dl';
 
   try {
@@ -7,9 +7,11 @@ export default async function handler(req, res) {
     if (id) {
       url += `/${id}`;
     } else {
-      // Filtra por data de hoje (YYYY-MM-DD) para puxar itens do dia atual
+      // Filtra por data
       const today = new Date().toISOString().split('T')[0];
-      url += `?date_from=${today}&per_page=50`;
+      const from = date_from || today;
+      url += `?date_from=${from}&per_page=100`;
+      if (date_to) url += `&date_to=${date_to}`;
     }
 
     const response = await fetch(url, {
