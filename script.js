@@ -111,18 +111,17 @@ async function generateLinkAction() {
 function shareGeneratedLink() {
     if (!currentGeneratedLink) return;
     const amountValue = parseFloat(currentAmount) / 100;
-    const shareData = {
-        title: 'Pagamento Pix',
-        text: `💰 Pagamento Pix\nValor: R$ ${amountValue.toFixed(2)}\nReferente a: Venda PDV Terminal\n\nClique no link abaixo para pagar:`,
-        url: currentGeneratedLink
-    };
+    
+    const formattedAmount = amountValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const textMsg = `💰 Pagamento Pix
+Valor: ${formattedAmount}
+Referente a: Venda
+Link: ${currentGeneratedLink}
 
-    if (navigator.share) {
-        navigator.share(shareData).catch(console.error);
-    } else {
-        const text = encodeURIComponent(shareData.text + "\n" + shareData.url);
-        window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
-    }
+Clique no link, na página que abrir você verá o QR code e a opção Pix copiar e cola, favor enviar o comprovante após o pagamento obrigado 😊`;
+
+    const url = `https://wa.me/?text=${encodeURIComponent(textMsg)}`;
+    window.open(url, '_blank');
 }
 
 function openGeneratedLink() {

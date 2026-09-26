@@ -1,5 +1,13 @@
 # Progresso da Integração BuyPix
 
+## [26/09/2026 17:54] - Refinamentos Finais (UI e WhatsApp)
+- **Status:** Atualizações Concluídas.
+- **Arquivos Modificados:**
+  - `index.html`: Removido o botão "Gerar Link" do teclado numérico e substituído o texto "Pix Freitas Terminal" por uma estrutura para a moeda Bitcoin.
+  - `style.css`: Adicionados estilos `.coin-container` e `.coin` com animação `@keyframes rotateCoin` para exibir uma moeda de Bitcoin girando em 3D no visor da maquininha.
+  - `script.js`: Modificada a função `shareGeneratedLink()` para ignorar o `navigator.share` e abrir diretamente o link via WhatsApp (`wa.me`) com formatação exata incluindo o valor localizado em Reais (BRL).
+- **Problemas encontrados:** Nenhum problema encontrado. O layout ajustou-se perfeitamente e o texto para o WhatsApp foi implementado conforme instruído.
+- **Tempo estimado gasto:** 5 minutos.
 ## [26/09/2026 13:25] - Refatoração Layout Maquininha POS e Fluxo de Pagamento
 - **Status:** Refatoração Concluída com Sucesso.
 - **Arquivos Modificados:**
