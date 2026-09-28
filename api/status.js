@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   const { id, date_from, date_to } = req.query;
-  const apiKey = 'bpx_LSKftVvEGaVzlH5yR2BXX17mahh2PEdHG3GV75dl';
+  const apiKey = process.env.BUYPIX_API_KEY;
 
   try {
     let url = 'https://buypix.me/api/v1/deposits';
