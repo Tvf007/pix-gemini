@@ -130,6 +130,17 @@ function openGeneratedLink() {
     }
 }
 
+function fecharModalLink() {
+    // Esconde o modal de link sem cancelar o polling
+    document.getElementById('link-action-container').classList.add('hidden');
+    // Reexibe a tela principal e os controles
+    document.getElementById('main-screen').classList.remove('hidden');
+    document.getElementById('keypad').classList.remove('hidden');
+    const footer = document.getElementById('footer-actions');
+    if (footer) footer.classList.remove('hidden');
+    document.getElementById('status-msg').innerText = 'Aguardando pagamento...';
+}
+
 function startPolling(id, amount) {
     if (pollingInterval) clearInterval(pollingInterval);
     
@@ -270,8 +281,12 @@ async function fetchRecentSales() {
                 <button onclick="fetchRecentSales()" style="width:100%; background:#333; color:#00e676; border:1px solid #444; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; cursor:pointer;">🔄 Atualizar Lista</button>
             `;
             sales.forEach(sale => {
-                const isPaid = ['depix_sent', 'paid', 'confirmed', 'completed'].includes(sale.status.toLowerCase());
+                // Usa payer_name como critério principal de confirmação
+                const hasPayer = !!(sale.payer_name && sale.payer_name.trim() !== '');
+                const statusByApi = sale.status ? ['depix_sent', 'paid', 'confirmed', 'completed'].includes(sale.status.toLowerCase()) : false;
+                const isPaid = hasPayer || statusByApi;
                 const color = isPaid ? '#00e676' : '#ffea00';
+                const statusLabel = isPaid ? 'CONFIRMADO ✅' : 'PENDENTE ⏳';
                 
                 const item = document.createElement('div');
                 item.className = "receipt-item";
@@ -280,7 +295,7 @@ async function fetchRecentSales() {
                 item.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <span style="font-weight:bold; font-size:16px;">R$ ${sale.amount.toFixed(2)}</span>
-                        <span style="color:${color}; font-size:13px; font-weight:bold;">${isPaid ? 'CONCLUÍDO ✅' : 'PENDENTE ⏳'}</span>
+                        <span style="color:${color}; font-size:13px; font-weight:bold;">${statusLabel}</span>
                     </div>
                     <div style="font-size:12px; color:#888; margin-top:8px;">
                         Data: ${new Date(sale.created_at).toLocaleString()}<br>
