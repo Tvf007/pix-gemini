@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   const { method } = req;
-  const apiKey = 'bpx_LSKftVvEGaVzlH5yR2BXX17mahh2PEdHG3GV75dl';
+  const apiKey = process.env.BUYPIX_API_KEY;
 
   if (method === 'POST') {
     // Criar Link de Pagamento

@@ -13,7 +13,7 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer bpx_LSKftVvEGaVzlH5yR2BXX17mahh2PEdHG3GV75dl',
+        'Authorization': `Bearer ${process.env.BUYPIX_API_KEY}`,
         'X-Idempotency-Key': crypto.randomUUID()
       },
       body: JSON.stringify({

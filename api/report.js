@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     const response = await fetch('https://buypix.me/api/v1/reports/summary', {
       method: 'GET',
       headers: {
-        'Authorization': 'Bearer bpx_LSKftVvEGaVzlH5yR2BXX17mahh2PEdHG3GV75dl'
+        'Authorization': `Bearer ${process.env.BUYPIX_API_KEY}`
       }
     });
 
