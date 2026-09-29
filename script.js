@@ -151,7 +151,7 @@ function startPolling(id, amount) {
 
             if (result.success) {
                 const status = result.data.status.toLowerCase();
-                const isSuccess = ['depix_sent', 'paid', 'confirmed', 'completed'].includes(status);
+                const isSuccess = ['depix_sent', 'paid', 'confirmed', 'completed', 'concluido', 'concluído'].includes(status);
                 const isFailure = ['expired', 'canceled', 'refunded', 'error'].includes(status);
 
                 if (isSuccess) {
@@ -281,12 +281,23 @@ async function fetchRecentSales() {
                 <button onclick="fetchRecentSales()" style="width:100%; background:#333; color:#00e676; border:1px solid #444; padding:10px; border-radius:8px; margin-bottom:15px; font-weight:bold; cursor:pointer;">🔄 Atualizar Lista</button>
             `;
             sales.forEach(sale => {
-                // Usa payer_name como critério principal de confirmação
-                const hasPayer = !!(sale.payer_name && sale.payer_name.trim() !== '');
-                const statusByApi = sale.status ? ['depix_sent', 'paid', 'confirmed', 'completed'].includes(sale.status.toLowerCase()) : false;
-                const isPaid = hasPayer || statusByApi;
-                const color = isPaid ? '#00e676' : '#ffea00';
-                const statusLabel = isPaid ? 'CONFIRMADO ✅' : 'PENDENTE ⏳';
+                // Validação estrita do status retornado pela API
+                const statusRaw = String(sale.status || '').toLowerCase().trim();
+                const statusPagos = ['completed', 'concluido', 'concluído', 'waiting_settlement', 'aguardando_liquidacao', 'paid', 'confirmed', 'depix_sent'];
+
+                const isPaid = statusPagos.includes(statusRaw);
+                const isExpired = statusRaw.includes('expirad') || statusRaw === 'expired' || statusRaw === 'canceled';
+
+                let color = '#ffea00'; // Amarelo para pendente
+                let statusLabel = 'PENDENTE ⏳';
+
+                if (isPaid) {
+                    color = '#00e676'; // Verde
+                    statusLabel = 'CONFIRMADO ✅';
+                } else if (isExpired) {
+                    color = '#ff5252'; // Vermelho
+                    statusLabel = 'EXPIRADO ❌';
+                }
                 
                 const item = document.createElement('div');
                 item.className = "receipt-item";
